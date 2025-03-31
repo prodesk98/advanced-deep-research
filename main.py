@@ -25,7 +25,7 @@ if "current_flashcard" not in st.session_state:
     st.session_state.current_flashcard = 0
 
 # Step 1: Generate the summary
-if prompt := st.chat_input("Enter your text for summarization or information extraction"):
+if prompt := st.chat_input("Insira seu texto para resumo ou extração de informações"):
     with st.chat_message("user"):
         st.markdown(prompt)
 
