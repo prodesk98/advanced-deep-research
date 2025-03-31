@@ -1,8 +1,6 @@
 from abc import ABC
 from typing import TypeVar, Generic, List
 
-from schemas import FlashCardSchema
-
 _T = TypeVar("_T")
 
 class BaseLLM(ABC):
@@ -16,7 +14,7 @@ class BaseLLM(ABC):
         """
         raise NotImplementedError("Subclasses must implement this method.")
 
-    def flashcard(self, prompt: str) -> List[FlashCardSchema]:
+    def flashcard(self, prompt: str) -> List[_T]:
         """
         Generate flashcards based on the provided prompt.
         :param prompt:
