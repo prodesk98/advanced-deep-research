@@ -1,1 +1,1 @@
-from .summarizer import SUMMARIZER_PROMPT
+from .prompt_engineer import SUMMARIZER_PROMPT, FLASHCARD_PROMPT
