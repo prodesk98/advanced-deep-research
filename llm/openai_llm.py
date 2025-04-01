@@ -14,7 +14,7 @@ from config import (
     OPENAI_MAX_TOKENS,
     OPENAI_TEMPERATURE,
 )
-from prompts import SUMMARIZER_PROMPT, FLASHCARD_PROMPT
+from prompt_engineering import SUMMARIZER_PROMPT, FLASHCARD_PROMPT
 from schemas import FlashCardSchema, FlashCardSchemaRequest
 from .base import BaseLLM
 

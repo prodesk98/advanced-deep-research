@@ -1,0 +1,1 @@
+from .templates import SUMMARIZER_PROMPT, FLASHCARD_PROMPT

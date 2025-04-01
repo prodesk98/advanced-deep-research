@@ -24,8 +24,37 @@ if "flashcards" not in st.session_state:
 if "current_flashcard" not in st.session_state:
     st.session_state.current_flashcard = 0
 
-# Step 1: Generate the summary
-if prompt := st.chat_input("Insira seu texto para resumo ou extração de informações"):
+# Step 0: Upload PDF
+uploaded_file = st.file_uploader("Envie um PDF para extração de texto", type="pdf")
+
+pdf_text = ""
+if uploaded_file is not None:
+    try:
+        pdf_reader = PyPDF2.PdfReader(uploaded_file)
+        pdf_text = ""
+        for page in pdf_reader.pages:
+            pdf_text += page.extract_text() or ""
+        st.success("PDF lido com sucesso!")
+    except Exception as e:
+        st.error(f"Erro ao ler o PDF: {e}")
+
+# Step 1: User Input or PDF content
+prompt = None
+
+if pdf_text:
+    st.subheader("Texto extraído do PDF:")
+    st.write(pdf_text)
+    if st.button("Usar texto do PDF para gerar resumo"):
+        prompt = pdf_text
+
+# Optional manual input
+manual_prompt = st.chat_input("Ou digite seu texto manualmente para gerar o resumo")
+
+if manual_prompt:
+    prompt = manual_prompt
+
+# Step 2: Generate Summary
+if prompt:
     with st.chat_message("user"):
         st.markdown(prompt)
 
@@ -33,9 +62,9 @@ if prompt := st.chat_input("Insira seu texto para resumo ou extração de inform
         stream = client.generate(prompt)
         summary = st.write_stream(stream)
         st.session_state.summary = summary
-        st.success("Resumo e analise do texto gerado com sucesso!")
+        st.success("Resumo e análise do texto gerado com sucesso!")
 
-# Step 2: Display the summary and button to create flashcards
+# Step 3: Display Summary and Generate Flashcards
 if st.session_state.summary:
     st.subheader("Resumo:")
     st.write(st.session_state.summary)
@@ -43,19 +72,18 @@ if st.session_state.summary:
     if st.button("Criar Flashcards"):
         with st.spinner("Gerando flashcards..."):
             try:
-                # Calls client.flashcard with the summary
-                flashcards = client.flashcard(st.session_state.summary)  # returns a list
+                flashcards = client.flashcard(st.session_state.summary)
 
                 if isinstance(flashcards, list) and len(flashcards) > 0:
                     st.session_state.flashcards = flashcards
                     st.session_state.current_flashcard = 0
-                    st.success(f"{len(flashcards)} Flashcards criado com sucesso!")
+                    st.success(f"{len(flashcards)} Flashcards criados com sucesso!")
                 else:
-                    st.warning("No flashcards were generated.")
+                    st.warning("Nenhum flashcard foi gerado.")
             except Exception as e:
-                st.error(f"Error while generating flashcards: {e}")
+                st.error(f"Erro ao gerar flashcards: {e}")
 
-# Step 3: Flashcard Viewer
+# Step 4: Flashcard Viewer
 if st.session_state.flashcards:
     current_index = st.session_state.current_flashcard
     current_card = st.session_state.flashcards[current_index]
@@ -71,8 +99,8 @@ if st.session_state.flashcards:
     # Navigation buttons
     col1, col2 = st.columns(2)
     with col1:
-        if st.button("Voltar.", disabled=current_index == 0):
+        if st.button("Voltar", disabled=current_index == 0):
             st.session_state.current_flashcard -= 1
     with col2:
-        if st.button("Próx.", disabled=current_index == len(st.session_state.flashcards) - 1):
+        if st.button("Próximo", disabled=current_index == len(st.session_state.flashcards) - 1):
             st.session_state.current_flashcard += 1
