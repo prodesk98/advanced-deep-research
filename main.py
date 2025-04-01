@@ -33,15 +33,15 @@ if prompt := st.chat_input("Insira seu texto para resumo ou extração de inform
         stream = client.generate(prompt)
         summary = st.write_stream(stream)
         st.session_state.summary = summary
-        st.success("Summary generated successfully!")
+        st.success("Resumo e analise do texto gerado com sucesso!")
 
 # Step 2: Display the summary and button to create flashcards
 if st.session_state.summary:
-    st.subheader("Summary:")
+    st.subheader("Resumo:")
     st.write(st.session_state.summary)
 
-    if st.button("Create Flashcards"):
-        with st.spinner("Generating flashcards..."):
+    if st.button("Criar Flashcards"):
+        with st.spinner("Gerando flashcards..."):
             try:
                 # Calls client.flashcard with the summary
                 flashcards = client.flashcard(st.session_state.summary)  # returns a list
@@ -49,7 +49,7 @@ if st.session_state.summary:
                 if isinstance(flashcards, list) and len(flashcards) > 0:
                     st.session_state.flashcards = flashcards
                     st.session_state.current_flashcard = 0
-                    st.success(f"{len(flashcards)} Flashcards created successfully!")
+                    st.success(f"{len(flashcards)} Flashcards criado com sucesso!")
                 else:
                     st.warning("No flashcards were generated.")
             except Exception as e:
@@ -60,19 +60,19 @@ if st.session_state.flashcards:
     current_index = st.session_state.current_flashcard
     current_card = st.session_state.flashcards[current_index]
 
-    st.subheader(f"Flashcard {current_index + 1} of {len(st.session_state.flashcards)}")
+    st.subheader(f"Flashcard {current_index + 1} de {len(st.session_state.flashcards)}")
 
-    if st.button("Show Question"):
-        st.write(f"**Question:** {current_card.question}")
+    if st.button("Mostrar Pergunta"):
+        st.write(current_card.question)
 
-    if st.button("Show Answer"):
+    if st.button("Mostrar Resposta"):
         st.success(current_card.answer)
 
     # Navigation buttons
     col1, col2 = st.columns(2)
     with col1:
-        if st.button("Previous", disabled=current_index == 0):
+        if st.button("Voltar.", disabled=current_index == 0):
             st.session_state.current_flashcard -= 1
     with col2:
-        if st.button("Next", disabled=current_index == len(st.session_state.flashcards) - 1):
+        if st.button("Próx.", disabled=current_index == len(st.session_state.flashcards) - 1):
             st.session_state.current_flashcard += 1
