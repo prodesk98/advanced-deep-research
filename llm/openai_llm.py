@@ -13,10 +13,11 @@ from config import (
     OPENAI_MODEL,
     OPENAI_MAX_TOKENS,
     OPENAI_TEMPERATURE,
+    OPENAI_EMBEDDING_MODEL,
 )
 from prompt_engineering import SUMMARIZER_PROMPT, FLASHCARD_PROMPT
 from schemas import FlashCardSchema, FlashCardSchemaRequest
-from .base import BaseLLM
+from .base import BaseLLM, BaseEmbedding
 
 from tenacity import (
     retry,
@@ -89,3 +90,19 @@ class OpenAILLM(BaseLLM):
         output: FlashCardSchemaRequest = chain.invoke({})
         #
         return output.flashcards
+
+
+class EmbeddingOpenAI(BaseEmbedding):
+    """
+    OpenAI LLM wrapper for the OpenAI API.
+    """
+
+    def __init__(self):
+        self.client = OpenAI(api_key=OPENAI_API_KEY)
+
+    @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
+    def embed(self, text: str) -> List[float]:
+        return self.client.embeddings.create(
+            input=text,
+            model=OPENAI_EMBEDDING_MODEL,
+        ).data[0].embedding

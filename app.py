@@ -14,6 +14,11 @@ st.write(
     "Você pode colar um texto longo e o modelo irá gerar um resumo ou extrair informações específicas."
 )
 
+if st.button("Novo chat"):
+    st.session_state.summary = None
+    st.session_state.flashcards = []
+    st.session_state.current_flashcard = 0
+
 # Initialize session states
 if "summary" not in st.session_state:
     st.session_state.summary = None
