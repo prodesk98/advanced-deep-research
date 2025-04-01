@@ -1,4 +1,6 @@
 from .environment import (
+    PROJECT_NAME,
+    LANGUAGE,
     OPENAI_API_KEY,
     OPENAI_MODEL,
     OPENAI_EMBEDDING_MODEL,
@@ -11,6 +13,8 @@ from .environment import (
 )
 
 __all__ = [
+    "PROJECT_NAME",
+    "LANGUAGE",
     "OPENAI_API_KEY",
     "OPENAI_MODEL",
     "OPENAI_EMBEDDING_MODEL",

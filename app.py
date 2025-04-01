@@ -1,23 +1,23 @@
 import streamlit as st
 from llm import OpenAILLM
+from utils import PDFParser
 
 client = OpenAILLM()
-
-"""
-Otimize a análise de textos resumindo e extraindo as informações mais relevantes com o auxílio de um chat LLM.
-"""
 
 st.title("Resumo de Textos com LLM")
 
 st.write(
-    "Esta aplicação utiliza um modelo de linguagem para resumir textos e extrair informações relevantes. "
-    "Você pode colar um texto longo e o modelo irá gerar um resumo ou extrair informações específicas."
+    """Esta aplicação utiliza um modelo de linguagem para resumir textos e extrair informações relevantes.
+    Você pode colar um texto longo e o modelo irá gerar um resumo ou extrair informações específicas."""
 )
 
+# Clear session state on button click
 if st.button("Novo chat"):
     st.session_state.summary = None
     st.session_state.flashcards = []
     st.session_state.current_flashcard = 0
+    st.session_state.messages = []
+#
 
 # Initialize session states
 if "summary" not in st.session_state:
@@ -29,16 +29,18 @@ if "flashcards" not in st.session_state:
 if "current_flashcard" not in st.session_state:
     st.session_state.current_flashcard = 0
 
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+#
+
 # Step 0: Upload PDF
 uploaded_file = st.file_uploader("Envie um PDF para extração de texto", type="pdf")
 
 pdf_text = ""
 if uploaded_file is not None:
     try:
-        pdf_reader = PyPDF2.PdfReader(uploaded_file)
-        pdf_text = ""
-        for page in pdf_reader.pages:
-            pdf_text += page.extract_text() or ""
+        pdf_parser = PDFParser(uploaded_file.read())
+        pdf_text = pdf_parser.to_text()
         st.success("PDF lido com sucesso!")
     except Exception as e:
         st.error(f"Erro ao ler o PDF: {e}")
@@ -62,11 +64,13 @@ if manual_prompt:
 if prompt:
     with st.chat_message("user"):
         st.markdown(prompt)
+        st.session_state.messages.append({"role": "user", "content": prompt})
 
     with st.chat_message("assistant"):
-        stream = client.generate(prompt)
+        stream = client.generate(st.session_state.messages)
         summary = st.write_stream(stream)
         st.session_state.summary = summary
+        st.session_state.messages.append({"role": "assistant", "content": summary})
         st.success("Resumo e análise do texto gerado com sucesso!")
 
 # Step 3: Display Summary and Generate Flashcards

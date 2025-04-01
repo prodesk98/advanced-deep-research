@@ -32,7 +32,7 @@ class OpenAILLM(BaseLLM):
     """
 
     def __init__(self):
-        self.client = OpenAI(api_key=OPENAI_API_KEY)
+        self._client = OpenAI(api_key=OPENAI_API_KEY)
         self.structured = ChatOpenAI(
             model=OPENAI_MODEL,
             temperature=OPENAI_TEMPERATURE,
@@ -40,13 +40,12 @@ class OpenAILLM(BaseLLM):
         )
 
     @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
-    def generate(self, prompt: str) -> Stream:
-        return self.client.chat.completions.create(
+    def generate(self, messages: list[dict]) -> Stream:
+        return self._client.chat.completions.create(
             model=OPENAI_MODEL,
             messages=[
                 {"role": "developer", "content": SUMMARIZER_PROMPT},
-                {"role": "user", "content": prompt}
-            ],
+            ] + messages,
             max_tokens=OPENAI_MAX_TOKENS,
             temperature=OPENAI_TEMPERATURE,
             stream=True,
@@ -98,11 +97,16 @@ class EmbeddingOpenAI(BaseEmbedding):
     """
 
     def __init__(self):
-        self.client = OpenAI(api_key=OPENAI_API_KEY)
+        self._client = OpenAI(api_key=OPENAI_API_KEY)
 
     @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
     def embed(self, text: str) -> List[float]:
-        return self.client.embeddings.create(
+        """
+        Generate embeddings for the provided text using the OpenAI API.
+        :param text:
+        :return:
+        """
+        return self._client.embeddings.create(
             input=text,
             model=OPENAI_EMBEDDING_MODEL,
         ).data[0].embedding

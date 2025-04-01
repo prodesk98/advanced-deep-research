@@ -3,13 +3,14 @@ from typing import TypeVar, Generic, List
 
 _T = TypeVar("_T")
 
+
 class BaseLLM(ABC):
     """
     Base class for all LLMs.
     """
 
     @abstractmethod
-    def generate(self, prompt: str) -> Generic[_T]:
+    def generate(self, messages: list[dict]) -> Generic[_T]:
         """
         Generate text based on the provided prompt.
         """

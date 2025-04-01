@@ -6,6 +6,9 @@ from pydantic import MongoDsn
 
 load_dotenv()
 
+PROJECT_NAME = environ.get("PROJECT_NAME", "Resumidor")
+LANGUAGE = environ.get("LANGUAGE", "pt")
+
 OPENAI_API_KEY = environ.get("OPENAI_API_KEY")
 if OPENAI_API_KEY is None:
     raise ValueError("OPENAI_API_KEY not found in environment variables.")

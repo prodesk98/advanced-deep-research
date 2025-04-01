@@ -1,9 +1,11 @@
+from typing import Optional
+
 from schemas import QueryResultSchema, UpsertSchema
 from .base import BaseQdrant
 
 class Qdrant(BaseQdrant):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, namespace: Optional[str] = None):
+        super().__init__(namespace)
 
     def upsert(self, data: list[UpsertSchema]) -> None:
         super().upsert(data)

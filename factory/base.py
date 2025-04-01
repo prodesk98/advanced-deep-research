@@ -7,6 +7,7 @@ from databases import db
 
 _T = TypeVar("_T", bound=BaseModel)
 
+
 class BaseFactory(ABC):
     def __init__(self, collection: str, namespace: Optional[str] = None, T: Optional[Type[_T]] = None):
         self.T: Optional[Type[_T]] = T
