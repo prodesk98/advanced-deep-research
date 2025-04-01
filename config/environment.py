@@ -20,7 +20,7 @@ OPENAI_MODEL = environ.get("OPENAI_MODEL", "gpt-4o-mini")
 OPENAI_EMBEDDING_MODEL = environ.get("OPENAI_EMBEDDING_MODEL", "text-embedding-3-small")
 
 # Set the OpenAI temperature for randomness in responses
-OPENAI_TEMPERATURE = float(environ.get("OPENAI_TEMPERATURE", 0.2))
+OPENAI_TEMPERATURE = float(environ.get("OPENAI_TEMPERATURE", .0))
 
 # Set the OpenAI max tokens for response length
 OPENAI_MAX_TOKENS = int(environ.get("OPENAI_MAX_TOKENS", 1000))

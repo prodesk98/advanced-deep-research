@@ -13,9 +13,12 @@ Summarize the following text clearly, cohesively, and concisely by:
 > - Prefer paraphrasing over direct quotations.
 > - Highlight significant points using expressions like “Importantly,” or “Notably”.
 > - Be self-contained, enabling understanding without the original text.
-> - Be concise, fluent, and written in Brazilian Portuguese, avoiding unnecessary jargon.
+> - Final Answer always Portuguese.
 > - Limit the summary to a maximum of 500 words.
->"""
+>
+
+Current scratchpad:
+{agent_scratchpad}"""
 
 
 FLASHCARD_PROMPT = """You are an assistant specialized in creating effective flashcards for studying. 

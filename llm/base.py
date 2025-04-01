@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
-from typing import TypeVar, Generic, List
+from typing import TypeVar, List
+
+from langchain_core.messages import BaseMessage
 
 _T = TypeVar("_T")
 
@@ -10,7 +12,7 @@ class BaseLLM(ABC):
     """
 
     @abstractmethod
-    def generate(self, messages: list[dict]) -> Generic[_T]:
+    def generate(self, chat_history: list[BaseMessage]) -> str:
         """
         Generate text based on the provided prompt.
         """

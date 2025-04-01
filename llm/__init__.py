@@ -1,4 +1,5 @@
-from .openai_llm import OpenAILLM, EmbeddingOpenAI
+from .openai_llm import OpenAILLM
+from .openai_embedding import EmbeddingOpenAI
 
 __all__ = [
     "OpenAILLM",

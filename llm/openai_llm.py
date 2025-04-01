@@ -1,23 +1,23 @@
 from typing import List
 
-from langchain_core.messages import HumanMessage
+from langchain.agents import AgentExecutor, create_tool_calling_agent
+from langchain_core.messages import HumanMessage, SystemMessage, BaseMessage
 from langchain_core.prompts import (
     ChatPromptTemplate,
     SystemMessagePromptTemplate,
-    PromptTemplate
+    PromptTemplate, MessagesPlaceholder,
 )
 from langchain_openai import ChatOpenAI
-from openai import OpenAI, Stream
+from openai import OpenAI
 from config import (
     OPENAI_API_KEY,
     OPENAI_MODEL,
     OPENAI_MAX_TOKENS,
     OPENAI_TEMPERATURE,
-    OPENAI_EMBEDDING_MODEL,
 )
 from prompt_engineering import SUMMARIZER_PROMPT, FLASHCARD_PROMPT
 from schemas import FlashCardSchema, FlashCardSchemaRequest
-from .base import BaseLLM, BaseEmbedding
+from .base import BaseLLM
 from .tools import Tools
 
 from tenacity import (
@@ -35,23 +35,48 @@ class OpenAILLM(BaseLLM):
     def __init__(self, namespace: str):
         self._client = OpenAI(api_key=OPENAI_API_KEY)
         self._tools = Tools(namespace)
-        self.structured = ChatOpenAI(
+        self.structured_llm = ChatOpenAI(
+            model=OPENAI_MODEL,
+            temperature=OPENAI_TEMPERATURE,
+            max_tokens=OPENAI_MAX_TOKENS,
+        )
+        self.agent_llm = ChatOpenAI(
             model=OPENAI_MODEL,
             temperature=OPENAI_TEMPERATURE,
             max_tokens=OPENAI_MAX_TOKENS,
         )
 
     @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
-    def generate(self, messages: list[dict]) -> Stream:
-        return self._client.chat.completions.create(
-            model=OPENAI_MODEL,
-            messages=[
-                {"role": "developer", "content": SUMMARIZER_PROMPT},
-            ] + messages,
-            max_tokens=OPENAI_MAX_TOKENS,
-            temperature=OPENAI_TEMPERATURE,
-            stream=True,
+    def generate(self, chat_history: list[BaseMessage]) -> str:
+        # Generate messages structure
+        messages = [
+            SystemMessage(SUMMARIZER_PROMPT),
+            MessagesPlaceholder(variable_name="chat_history"),
+            MessagesPlaceholder(variable_name="agent_scratchpad")
+        ]
+        #
+        # Construct the prompt for the agent
+        prompt = ChatPromptTemplate.from_messages(messages=messages)
+        #
+
+        # Create Agent Executor
+        agentReAct = create_tool_calling_agent(self.agent_llm, self._tools.get(), prompt)
+        #
+
+        # Create the agent executor
+        agent_executor = AgentExecutor(
+            agent=agentReAct,
+            tools=self._tools.get(),
+            verbose=True,
+            max_iterations=15,
+            early_stopping_method="force",
+            handle_parsing_errors=True,
         )
+        #
+
+        result: dict = agent_executor.invoke({"chat_history": chat_history})
+        return result.get("output", "")
+
 
     @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
     def flashcard(self, prompt: str) -> List[FlashCardSchema]:
@@ -77,7 +102,7 @@ class OpenAILLM(BaseLLM):
         #
 
         # Generate the flashcards using the structured prompt
-        structured_schema = self.structured.with_structured_output(FlashCardSchemaRequest, method="json_schema")
+        structured_schema = self.structured_llm.with_structured_output(FlashCardSchemaRequest, method="json_schema")
         #
 
         # Create the chain to process the structured prompt
@@ -91,24 +116,3 @@ class OpenAILLM(BaseLLM):
         output: FlashCardSchemaRequest = chain.invoke({})
         #
         return output.flashcards
-
-
-class EmbeddingOpenAI(BaseEmbedding):
-    """
-    OpenAI LLM wrapper for the OpenAI API.
-    """
-
-    def __init__(self):
-        self._client = OpenAI(api_key=OPENAI_API_KEY)
-
-    @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
-    def embed(self, text: str) -> List[float]:
-        """
-        Generate embeddings for the provided text using the OpenAI API.
-        :param text:
-        :return:
-        """
-        return self._client.embeddings.create(
-            input=text,
-            model=OPENAI_EMBEDDING_MODEL,
-        ).data[0].embedding
