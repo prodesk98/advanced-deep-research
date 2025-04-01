@@ -15,5 +15,19 @@ Otimize a análise de textos resumindo e extraindo as informações mais relevan
    
 3. Run the script.
     ```bash
-    poetry run streamlit run main.py
+    poetry run streamlit run app.py
     ```
+   
+# Deployment using Docker
+
+1. Build the Docker image.
+    ```bash
+    docker build -t resumidor .
+    ```
+   
+2. Run the Docker container.
+    ```bash
+    docker run -p 8501:8501 --env-file .env resumidor
+    ```
+   
+3. Access the app in your browser at `http://localhost:8501`.
