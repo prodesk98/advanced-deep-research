@@ -21,9 +21,6 @@ class HTTPRequest:
         self.data = data or {}
 
     def _build_request(self) -> requests.Request:
-        """
-        Build the request object.
-        """
         self.headers.setdefault("Accept", "application/json, text/plain, text/html")
         self.headers.setdefault("User-Agent",
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "

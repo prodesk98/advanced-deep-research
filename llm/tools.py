@@ -1,3 +1,4 @@
+import json
 from typing import Optional
 
 from loggings import logger
@@ -6,6 +7,7 @@ from utils import (
     ArxivParser,
     YoutubeParser
 )
+from services import SemanticSearch, GoogleSearch
 
 
 def TranscriptYoutubeVideo(video_url: str) -> Optional[str]:
@@ -54,5 +56,45 @@ def ArxivPaperSearch(query: str, max_results: int = 3) -> Optional[str]:
     try:
         arXiv_parser = ArxivParser()
         return arXiv_parser.search(query, max_results)
+    except Exception as e:
+        logger(e, level="error")
+
+
+def SearchDocuments(query: str, max_results: int = 10, namespace: Optional[str] =  None) -> Optional[str]:
+    """
+    Search for a query using a search documents.
+    :param query: Str
+        The search query.
+    :param max_results: Int
+        The maximum number of results to return.
+    :param namespace: Optional[str]
+        The namespace to use for the search.
+    :return:
+        Optional[str]: The titles and abstracts of the papers found.
+    """
+
+    try:
+        # Search Engine Constructor
+        semantic_search = SemanticSearch(namespace)
+        return json.dumps(semantic_search.search(query, max_results))
+    except Exception as e:
+        logger(e, level="error")
+
+
+def SearchGoogleEngine(query: str, max_results: int = 10) -> Optional[str]:
+    """
+    Search for a query using Google search engine.
+    :param query: Str
+        The search query.
+    :param max_results: Int
+        The maximum number of results to return.
+    :return:
+        Optional[str]: The titles and abstracts of the papers found.
+    """
+
+    try:
+        # Search Engine Constructor
+        google_search = GoogleSearch()
+        return json.dumps(google_search.search(query, max_results))
     except Exception as e:
         logger(e, level="error")

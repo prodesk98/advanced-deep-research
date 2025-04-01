@@ -13,11 +13,13 @@ st.write(
 
 # Clear session state on button click
 if st.button("Novo chat"):
-    st.session_state.summary = None
-    st.session_state.flashcards = []
-    st.session_state.current_flashcard = 0
-    st.session_state.messages = []
+    st.session_state.clear()
+    st.rerun()
 #
+
+# Step 0: Upload PDF
+uploaded_file = st.file_uploader("Envie um PDF para extração de texto", type="pdf")
+
 
 # Initialize session states
 if "summary" not in st.session_state:
@@ -32,9 +34,6 @@ if "current_flashcard" not in st.session_state:
 if "messages" not in st.session_state:
     st.session_state.messages = []
 #
-
-# Step 0: Upload PDF
-uploaded_file = st.file_uploader("Envie um PDF para extração de texto", type="pdf")
 
 pdf_text = ""
 if uploaded_file is not None:

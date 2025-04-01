@@ -9,8 +9,8 @@ class SiteParser:
 
     def to_markdown(self) -> Optional[str]:
         """
-        Convert the content of the URL to markdown format.
-        :return: The content in markdown format.
+        Convert the content of the URL to Markdown format.
+        :return: The content in Markdown format.
         """
         response = HTTPRequest(self._url).send()
         if not response:
