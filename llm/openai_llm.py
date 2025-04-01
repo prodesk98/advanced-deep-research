@@ -18,6 +18,7 @@ from config import (
 from prompt_engineering import SUMMARIZER_PROMPT, FLASHCARD_PROMPT
 from schemas import FlashCardSchema, FlashCardSchemaRequest
 from .base import BaseLLM, BaseEmbedding
+from .tools import Tools
 
 from tenacity import (
     retry,
@@ -31,8 +32,9 @@ class OpenAILLM(BaseLLM):
     OpenAI LLM wrapper for the OpenAI API.
     """
 
-    def __init__(self):
+    def __init__(self, namespace: str):
         self._client = OpenAI(api_key=OPENAI_API_KEY)
+        self._tools = Tools(namespace)
         self.structured = ChatOpenAI(
             model=OPENAI_MODEL,
             temperature=OPENAI_TEMPERATURE,

@@ -15,9 +15,9 @@ class GoogleSearch:
         results = googlesearch.search(query, num_results=limit, lang=LANGUAGE, advanced=True)
         return [
             {
-                "title": result.title,
+                "title": result.title.title(),
                 "link": result.url,
-                "description": result.description.strip(),
+                "snippet": result.description.strip(),
             }
             for result in results
         ]
