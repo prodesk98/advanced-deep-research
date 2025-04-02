@@ -58,7 +58,7 @@ if pdf_text:
         prompt = pdf_text
 
 # Optional manual input
-manual_prompt = st.chat_input("Ou digite seu texto manualmente para gerar o resumo")
+manual_prompt = st.chat_input("Digite seu texto...")
 
 if manual_prompt:
     prompt = manual_prompt
@@ -97,10 +97,19 @@ if st.session_state.summary:
     st.subheader("Resumo:")
     st.write(st.session_state.summary)
 
+    st.subheader("Flashcards: Crie flashcards para fixar o conteúdo.")
+
+    quantities = st.number_input(
+        "Quantas flashcards você gostaria de gerar?",
+        min_value=1,
+        max_value=10,
+        value=5,
+    )
+
     if st.button("Criar Flashcards"):
-        with st.spinner("Gerando flashcards..."):
+        with st.spinner(f"Gerando {quantities} flashcards..."):
             try:
-                flashcards = client.flashcard(st.session_state.summary)
+                flashcards = client.flashcard(st.session_state.summary, quantities)
 
                 if isinstance(flashcards, list) and len(flashcards) > 0:
                     st.session_state.flashcards = flashcards

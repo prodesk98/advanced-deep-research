@@ -129,10 +129,11 @@ class OpenAILLM(BaseLLM):
 
 
     @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
-    def flashcard(self, prompt: str) -> List[FlashCardSchema]:
+    def flashcard(self, prompt: str, quantities: int = 5) -> List[FlashCardSchema]:
         """
         Generate flashcards based on the provided prompt.
         :param prompt:
+        :param quantities:
         :return:
         """
         # Create a structured prompt for the flashcard generation
@@ -141,7 +142,9 @@ class OpenAILLM(BaseLLM):
                 SystemMessagePromptTemplate(
                     prompt=PromptTemplate(
                         template=FLASHCARD_PROMPT,
-                        input_variables=[],
+                        input_variables=[
+                            "quantities"
+                        ],
                     )
                 ),
                 HumanMessage(
@@ -163,6 +166,6 @@ class OpenAILLM(BaseLLM):
         #
 
         # Execute the chain and return the flashcards
-        output: FlashCardSchemaRequest = chain.invoke({})
+        output: FlashCardSchemaRequest = chain.invoke({"quantities": quantities})
         #
         return output.flashcards
