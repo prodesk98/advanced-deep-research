@@ -19,8 +19,18 @@ services:
       - "8005:8000"
     volumes:
       - huggingface_cache:/root/.cache/huggingface
+      - ./llm_models:/llm_models
     ipc: host
-    command: --model ${MODEL_NAME}
+    command: >
+      --model /llm_models/Qwen2.5-7B-Instruct-Q4_K_M.gguf
+      --tokenizer Qwen/Qwen2.5-7B-Instruct
+      --load-format gguf
+      --tensor-parallel-size 1
+      --disable-sliding-window
+      --max-model-len 10000
+      --gpu-memory-utilization 0.98
+      --enable-auto-tool-choice
+      --tool-call-parser llama3_json
 
   frontend:
     build:
