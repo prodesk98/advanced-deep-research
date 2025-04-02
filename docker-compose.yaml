@@ -1,0 +1,35 @@
+
+services:
+  frontend:
+    build:
+      dockerfile: Dockerfile
+      context: .
+    env_file:
+      - .env
+    ports:
+      - "8501:8501"
+
+  mongodb:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: pwd
+
+  qdrant:
+    image: qdrant/qdrant
+    ports:
+      - "6333:6333"
+    environment:
+      QDRANT__STORAGE__PATH: /qdrant/storage
+      QDRANT__STORAGE__MEMORY_LIMIT: 1000000000
+      QDRANT__STORAGE__MAX_CONNECTIONS: 1000
+    volumes:
+      - qdrant_storage:/qdrant/storage
+
+volumes:
+  mongo_data:
+  qdrant_storage:

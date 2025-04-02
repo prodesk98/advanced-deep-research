@@ -1,6 +1,7 @@
 
 
-SUMMARIZER_PROMPT = """You are an assistant specialized in summarizing content to enhance studying and understanding. Summarize the following text clearly, cohesively, and concisely by:
+SUMMARIZER_PROMPT = """You are an assistant specialized in summarizing content to enhance studying and understanding. 
+Summarize the following text clearly, cohesively, and concisely by:
 
 > - Identifying the main topic and key ideas.
 > - Highlighting relevant data (examples, numbers, critical facts).
@@ -12,9 +13,15 @@ SUMMARIZER_PROMPT = """You are an assistant specialized in summarizing content t
 > - Prefer paraphrasing over direct quotations.
 > - Highlight significant points using expressions like “Importantly,” or “Notably”.
 > - Be self-contained, enabling understanding without the original text.
-> - Be concise, fluent, and written in Brazilian Portuguese, avoiding unnecessary jargon.
-> - Limit the summary to a maximum of 200 words.
->"""
+> - Final Answer always Portuguese.
+> - Limit the summary to a maximum of 500 words.
+>
+
+Current time:
+{current_time}
+
+Current scratchpad:
+{agent_scratchpad}"""
 
 
 FLASHCARD_PROMPT = """You are an assistant specialized in creating effective flashcards for studying. 
