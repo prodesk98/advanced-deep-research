@@ -13,6 +13,9 @@ OPENAI_API_KEY = environ.get("OPENAI_API_KEY")
 if OPENAI_API_KEY is None:
     raise ValueError("OPENAI_API_KEY not found in environment variables.")
 
+# Set the OpenAI API base URL
+OPENAI_API_BASE = environ.get("OPENAI_API_BASE", "https://api.openai.com/v1")
+
 # Set the OpenAI model to be used
 OPENAI_MODEL = environ.get("OPENAI_MODEL", "gpt-4o-mini")
 

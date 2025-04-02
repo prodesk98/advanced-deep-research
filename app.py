@@ -58,7 +58,7 @@ if pdf_text:
         prompt = pdf_text
 
 # Optional manual input
-manual_prompt = st.chat_input("Ou digite seu texto manualmente para gerar o resumo")
+manual_prompt = st.chat_input("Digite seu texto...")
 
 if manual_prompt:
     prompt = manual_prompt

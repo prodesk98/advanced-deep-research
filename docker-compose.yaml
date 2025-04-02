@@ -1,5 +1,27 @@
 
 services:
+  vllm-instruct:
+    image: vllm/vllm-openai:latest
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    env_file:
+      - .env.vllm
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+      - HUGGING_FACE_HUB_TOKEN=${HUGGING_FACE_HUB_TOKEN}
+    ports:
+      - "8005:8000"
+    volumes:
+      - huggingface_cache:/root/.cache/huggingface
+    ipc: host
+    command: --model ${MODEL_NAME}
+
   frontend:
     build:
       dockerfile: Dockerfile
@@ -33,3 +55,4 @@ services:
 volumes:
   mongo_data:
   qdrant_storage:
+  huggingface_cache:

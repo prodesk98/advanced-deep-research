@@ -1,5 +1,5 @@
 # Resumidor
-Otimize a análise de textos resumindo e extraindo as informações mais relevantes com o auxílio de um chat LLM baseado na API OpenAI.
+Optimize text analysis by summarizing and extracting the most relevant information with the help of an LLM chat based.
 
 # How to use
 1. Copy the `.env.example` file to `.env` and fill in your OpenAI API key.

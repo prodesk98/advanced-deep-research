@@ -9,17 +9,17 @@ from langchain_core.messages import HumanMessage, SystemMessage, BaseMessage
 from langchain_core.prompts import (
     ChatPromptTemplate,
     SystemMessagePromptTemplate,
-    PromptTemplate, MessagesPlaceholder,
+    PromptTemplate,
+    MessagesPlaceholder,
 )
 from langchain_openai import ChatOpenAI
-from openai import OpenAI
 from streamlit.delta_generator import DeltaGenerator
 
 from config import (
     OPENAI_API_KEY,
     OPENAI_MODEL,
     OPENAI_MAX_TOKENS,
-    OPENAI_TEMPERATURE,
+    OPENAI_TEMPERATURE, OPENAI_API_BASE,
 )
 from prompt_engineering import SUMMARIZER_PROMPT, FLASHCARD_PROMPT
 from schemas import FlashCardSchema, FlashCardSchemaRequest
@@ -74,14 +74,17 @@ class OpenAILLM(BaseLLM):
     """
 
     def __init__(self, namespace: str):
-        self._client = OpenAI(api_key=OPENAI_API_KEY)
         self._tools = Tools(namespace)
         self.structured_llm = ChatOpenAI(
+            base_url=OPENAI_API_BASE,
+            api_key=OPENAI_API_KEY,
             model=OPENAI_MODEL,
             temperature=OPENAI_TEMPERATURE,
             max_tokens=OPENAI_MAX_TOKENS,
         )
         self.agent_llm = ChatOpenAI(
+            base_url=OPENAI_API_BASE,
+            api_key=OPENAI_API_KEY,
             model=OPENAI_MODEL,
             temperature=OPENAI_TEMPERATURE,
             max_tokens=OPENAI_MAX_TOKENS,
