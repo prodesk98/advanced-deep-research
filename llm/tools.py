@@ -1,7 +1,7 @@
 import json
 from typing import Optional
 
-from langchain_core.tools import StructuredTool, tool
+from langchain_core.tools import StructuredTool
 
 from loggings import logger
 from schemas import (

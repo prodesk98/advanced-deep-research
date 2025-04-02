@@ -25,7 +25,6 @@ if st.button("Novo chat"):
 # Step 0: Upload PDF
 uploaded_file = st.file_uploader("Envie um PDF para extração de texto", type="pdf")
 
-
 # Initialize session states
 if "summary" not in st.session_state:
     st.session_state.summary = None
@@ -71,21 +70,27 @@ if prompt:
         st.session_state.messages.append({"role": "user", "content": prompt})
 
     with st.chat_message("assistant"):
-        agent_output = client.generate(
-            [
-                HumanMessage(content=m['content'])
-                if m['role'] == "user"
-                else AIMessage(
-                    content=m['content'],
-                    additional_kwargs={"name": m['role']}
-                )
-                for m in st.session_state.messages
-            ]
-        )
-        summary = st.write(agent_output)
-        st.session_state.summary = agent_output
-        st.session_state.messages.append({"role": "assistant", "content": agent_output})
-        st.success("Resumo e análise do texto gerado com sucesso!")
+        st.session_state.summary = None
+        st.session_state.flashcards = []
+        st.session_state.current_flashcard = 0
+        with st.spinner("Agentes gerando resumo..."):
+            # Placeholder for feedback
+            feedback_placeholder = st.empty()
+            agent_output = client.generate(
+                [
+                    HumanMessage(content=m['content'])
+                    if m['role'] == "user"
+                    else AIMessage(
+                        content=m['content'],
+                        additional_kwargs={"name": m['role']}
+                    )
+                    for m in st.session_state.messages
+                ],
+                placeholder=feedback_placeholder,
+            )
+            st.session_state.summary = agent_output
+            st.session_state.messages.append({"role": "assistant", "content": agent_output})
+            st.success("Resumo e análise do texto gerado com sucesso!")
 
 # Step 3: Display Summary and Generate Flashcards
 if st.session_state.summary:

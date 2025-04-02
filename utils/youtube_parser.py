@@ -23,7 +23,7 @@ class YoutubeParser:
 
         try:
             # Get the transcript
-            transcript = self._client.fetch(video_id, languages=(LANGUAGE,))  # Specify the language
+            transcript = self._client.fetch(video_id, languages=(LANGUAGE, "pt", "pt-BR", "en-US",))  # Specify the language
 
             # Combine the transcript into a single string
             transcript_text = " ".join(

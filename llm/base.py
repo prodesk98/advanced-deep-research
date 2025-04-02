@@ -1,7 +1,8 @@
 from abc import ABC, abstractmethod
-from typing import TypeVar, List
+from typing import TypeVar, List, Optional
 
 from langchain_core.messages import BaseMessage
+from streamlit.delta_generator import DeltaGenerator
 
 _T = TypeVar("_T")
 
@@ -12,7 +13,7 @@ class BaseLLM(ABC):
     """
 
     @abstractmethod
-    def generate(self, chat_history: list[BaseMessage]) -> str:
+    def generate(self, chat_history: list[BaseMessage], placeholder: Optional[DeltaGenerator]) -> str:
         """
         Generate text based on the provided prompt.
         """

@@ -17,6 +17,9 @@ Summarize the following text clearly, cohesively, and concisely by:
 > - Limit the summary to a maximum of 500 words.
 >
 
+Current time:
+{current_time}
+
 Current scratchpad:
 {agent_scratchpad}"""
 
