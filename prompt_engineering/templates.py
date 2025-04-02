@@ -37,5 +37,5 @@ Based on the following text, generate a single flashcard consisting of:
 > - Use simple and accessible language.
 > - If possible, paraphrase rather than directly quoting.
 > - Write both the question and answer in Brazilian Portuguese.
-> - Limit the 5 flashcards to a maximum of 200 words each.
+> - Limit the {quantities} flashcards to a maximum of 200 words each.
 >"""

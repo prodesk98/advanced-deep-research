@@ -20,10 +20,11 @@ class BaseLLM(ABC):
         raise NotImplementedError("Subclasses must implement this method.")
 
     @abstractmethod
-    def flashcard(self, prompt: str) -> List[_T]:
+    def flashcard(self, prompt: str, quantities: int = 5) -> List[_T]:
         """
         Generate flashcards based on the provided prompt.
         :param prompt:
+        :param quantities:
         :return:
         """
         raise NotImplementedError("Subclasses must implement this method.")
