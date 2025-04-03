@@ -16,14 +16,14 @@ parser = argparse.ArgumentParser(
 parser.add_argument(
     "--repo-id",
     type=str,
-    default="Qwen/Qwen2.5-0.5B-Instruct-GGUF",
+    default="lmstudio-community/Qwen2.5-7B-Instruct-1M-GGUF",
     help="Hugging Face repo id",
 )
 
 parser.add_argument(
-    "--model-name",
+    "--filename",
     type=str,
-    default="qwen2.5-0.5b-instruct-fp16.gguf",
+    default="Qwen2.5-7B-Instruct-1M-Q4_K_M.gguf",
     help="The name of the model to download from Hugging Face.",
 )
 
@@ -37,19 +37,19 @@ parser.add_argument(
 args = parser.parse_args()
 
 repo_id: str = args.repo_id
-model_name: str = args.model_name
+filename: str = args.filename
 local_dir: str = args.local_dir
 
 if not repo_id:
     raise ValueError("Repo ID is required. Please provide a repo ID.")
 
-if not model_name:
-    raise ValueError("Model name is required. Please provide a model name.")
+if not filename:
+    raise ValueError("Filename is required. Please provide a filename.")
 
 # Check if the model is already downloaded
 
 logger(
-    f"Checking if the model {model_name} is already downloaded in {local_dir}",
+    f"Checking if the file {filename} is already downloaded in {local_dir}",
     level="info",
 )
 login(token=os.environ.get("HF_TOKEN"))
@@ -57,21 +57,24 @@ login(token=os.environ.get("HF_TOKEN"))
 
 # Download the model from Hugging Face
 logger(
-    f"Downloading the model {model_name} from {repo_id} to {local_dir}",
+    f"Downloading the file {filename} from {repo_id} to {local_dir}",
     level="info",
 )
 
 file_path = hf_hub_download(
     repo_id=repo_id,
-    filename=model_name,
-    cache_dir=local_dir,
+    filename=filename,
     force_download=False,
     local_files_only=False,
 )
 
-shutil.move(file_path, os.path.join(local_dir, model_name))
+# Copy the downloaded file to the local directory
+shutil.copy(file_path, os.path.join(local_dir, filename))
+
+# Remove the original file if it exists
+os.remove(file_path)
 
 logger(
-    f"Model {model_name} downloaded successfully to {local_dir}",
+    f"File {filename} downloaded successfully to {local_dir}",
     level="info",
 )

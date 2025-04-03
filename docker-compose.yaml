@@ -10,35 +10,56 @@ services:
               count: all
               capabilities: [gpu]
     env_file:
-      - .env.vllm
+      - .env
     environment:
       - NVIDIA_VISIBLE_DEVICES=all
       - NVIDIA_DRIVER_CAPABILITIES=compute,utility
     ports:
       - "8005:8000"
     volumes:
-      - huggingface_cache:/root/.cache/huggingface
+      - ./cache:/root/.cache/huggingface
       - ./models:/opt/models
     ipc: host
     command: >
-      --model /opt/models/Qwen2.5-7B-Instruct-Q4_K_M.gguf
-      --tokenizer Qwen/Qwen2.5-0.5B-Instruct-GGUF
+      --model /opt/models/Qwen2.5-7B-Instruct-1M-Q4_K_M.gguf
+      --tokenizer Qwen/Qwen2.5-7B-Instruct-1M
       --load-format gguf
       --tensor-parallel-size 1
       --disable-sliding-window
-      --max-model-len 10000
-      --gpu-memory-utilization 0.98
+      --max-model-len 15000
+      --gpu-memory-utilization 0.95
       --enable-auto-tool-choice
       --tool-call-parser hermes
 
   frontend:
     build:
-      dockerfile: Dockerfile
+      dockerfile: frontend.Dockerfile
       context: .
     env_file:
       - .env
     ports:
       - "8501:8501"
+
+  backend:
+    build:
+      dockerfile: backend.Dockerfile
+      context: .
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    env_file:
+      - .env
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+    volumes:
+      - ./cache:/root/.cache/huggingface
+    ports:
+      - "8502:3000"
 
   mongodb:
     image: mongo:latest
@@ -64,4 +85,3 @@ services:
 volumes:
   mongo_data:
   qdrant_storage:
-  huggingface_cache:

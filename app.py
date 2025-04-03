@@ -4,24 +4,20 @@ from langchain_core.messages import HumanMessage, AIMessage
 from llm import OpenAILLM
 from utils import PDFParser
 
-namespace = "default"
-client = OpenAILLM(namespace=namespace)
 
-st.title("Resumo de Textos com LLM")
+client = OpenAILLM()
 
-st.write(
-    """Esta aplicação utiliza um modelo de linguagem para resumir textos e extrair informações relevantes.
-    Você pode colar um texto longo e o modelo irá gerar um resumo ou extrair informações específicas."""
-)
+# --- Sidebar ---
+with st.sidebar:
+    if st.button("➕ Novo"):
+        st.session_state.clear()
+        st.rerun()
 
-# Clear session state on button click
-if st.button("Novo chat"):
-    st.session_state.clear()
-    st.rerun()
+    st.markdown("---")
+
+    # Step 0: Upload PDF
+    uploaded_file = st.file_uploader("Envie um PDF para extração de texto", type="pdf")
 #
-
-# Step 0: Upload PDF
-uploaded_file = st.file_uploader("Envie um PDF para extração de texto", type="pdf")
 
 # Initialize session states
 if "summary" not in st.session_state:
@@ -92,7 +88,6 @@ if prompt:
 
 # Step 3: Display Summary and Generate Flashcards
 if st.session_state.summary:
-    st.subheader("Resumo:")
     st.write(st.session_state.summary)
 
     if st.button("Criar Flashcards"):
@@ -108,6 +103,9 @@ if st.session_state.summary:
                     st.warning("Nenhum flashcard foi gerado.")
             except Exception as e:
                 st.error(f"Erro ao gerar flashcards: {e}")
+
+    if st.button("Salvar"):
+        st.success("Flashcards salvos com sucesso!")
 
 # Step 4: Flashcard Viewer
 if st.session_state.flashcards:
