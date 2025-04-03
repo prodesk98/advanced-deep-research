@@ -1,14 +1,33 @@
+import uuid
+
 import streamlit as st
 from langchain_core.messages import HumanMessage, AIMessage
 
-from llm import OpenAILLM
+from llm import get_llm
 from utils import PDFParser
 
 
-client = OpenAILLM()
+client = get_llm()
 
 pdf_text = ""
 prompt = None
+
+# Initialize session states
+if "chat_id" not in st.session_state:
+    st.session_state.chat_id = uuid.uuid4().hex
+
+if "summary" not in st.session_state:
+    st.session_state.summary = None
+
+if "flashcards" not in st.session_state:
+    st.session_state.flashcards = []
+
+if "current_flashcard" not in st.session_state:
+    st.session_state.current_flashcard = 0
+
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+#
 
 # --- Sidebar ---
 with st.sidebar:
@@ -16,6 +35,7 @@ with st.sidebar:
         st.session_state.clear()
         st.rerun()
 
+    st.write(f"_{st.session_state.chat_id}_")
     st.markdown("---")
 
     # Step 0: Upload PDF
@@ -32,23 +52,8 @@ with st.sidebar:
         except Exception as e:
             st.error(f"Erro ao ler o PDF: {e}")
 
+
 #
-
-# Initialize session states
-if "summary" not in st.session_state:
-    st.session_state.summary = None
-
-if "flashcards" not in st.session_state:
-    st.session_state.flashcards = []
-
-if "current_flashcard" not in st.session_state:
-    st.session_state.current_flashcard = 0
-
-if "messages" not in st.session_state:
-    st.session_state.messages = []
-#
-
-# Step 1: User Input or PDF content
 
 # Optional manual input
 manual_prompt = st.chat_input("Digite seu texto...")
@@ -83,37 +88,38 @@ if prompt:
             )
             st.session_state.summary = agent_output
             st.session_state.messages.append({"role": "assistant", "content": agent_output})
-            st.success("Resumo e análise do texto gerado com sucesso!")
+            st.success("✅ Concluído!")
 
-# Step 3: Display Summary and Generate Flashcards
-if st.session_state.summary:
-    st.write(st.session_state.summary)
+            if len(st.session_state.summary) >= 900:
+                st.subheader("Flashcards: Crie flashcards para fixar o conteúdo.")
 
-    st.subheader("Flashcards: Crie flashcards para fixar o conteúdo.")
+                quantities = st.number_input(
+                    "Quantas flashcards você gostaria de gerar?",
+                    min_value=1,
+                    max_value=10,
+                    value=5,
+                )
 
-    quantities = st.number_input(
-        "Quantas flashcards você gostaria de gerar?",
-        min_value=1,
-        max_value=10,
-        value=5,
-    )
+                if st.button("Criar Flashcards"):
+                    with st.spinner(f"Gerando {quantities} flashcards..."):
+                        try:
+                            flashcards = client.flashcard(st.session_state.summary, quantities)
 
-    if st.button("Criar Flashcards"):
-        with st.spinner(f"Gerando {quantities} flashcards..."):
-            try:
-                flashcards = client.flashcard(st.session_state.summary, quantities)
+                            if isinstance(flashcards, list) and len(flashcards) > 0:
+                                st.session_state.flashcards = flashcards
+                                st.session_state.current_flashcard = 0
+                                st.success(f"{len(flashcards)} Flashcards criados com sucesso!")
+                            else:
+                                st.warning("Nenhum flashcard foi gerado.")
+                        except Exception as e:
+                            st.error(f"Erro ao gerar flashcards: {e}")
 
-                if isinstance(flashcards, list) and len(flashcards) > 0:
-                    st.session_state.flashcards = flashcards
-                    st.session_state.current_flashcard = 0
-                    st.success(f"{len(flashcards)} Flashcards criados com sucesso!")
-                else:
-                    st.warning("Nenhum flashcard foi gerado.")
-            except Exception as e:
-                st.error(f"Erro ao gerar flashcards: {e}")
+                if st.button("Salvar"):
+                    st.success("Resumo salvo com sucesso!")
 
-    if st.button("Salvar"):
-        st.success("Resumo salvo com sucesso!")
+            # Write the summary
+            st.write(st.session_state.summary)
+
 
 # Step 4: Flashcard Viewer
 if st.session_state.flashcards:

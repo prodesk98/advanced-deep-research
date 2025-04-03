@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 
 from server.schemas import (
     EmbeddingsRequest,
@@ -23,26 +23,37 @@ app = FastAPI(
 async def embeddings(
     payload: EmbeddingsRequest,
 ) -> EmbeddingsResponse:
-    embeddings_result = await embed_texts(payload.texts)
-    print(len(embeddings_result[0]))
-    return EmbeddingsResponse(
-        embeddings=embeddings_result
-    )
+    try:
+        embeddings_result = await embed_texts(payload.texts)
+        return EmbeddingsResponse(
+            embeddings=embeddings_result
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error during embedding: {str(e)}"
+        )
 
 
 @app.post("/rerank", response_model=RerankResponse)
 async def rerank(
     payload: RerankRequest,
 ) -> RerankResponse:
-    rerank_result = await rerank_documents(payload.query, payload.documents)
-    documents, scores = rerank_result
-    return RerankResponse(
-        reranked=[
-            RerankedDocument(
-                document=doc,
-                score=score
-            )
-            for doc, score in zip(documents, scores)
-        ]
-    )
+    try:
+        rerank_result = await rerank_documents(payload.query, payload.documents)
+        documents, scores = rerank_result
+        return RerankResponse(
+            reranked=[
+                RerankedDocument(
+                    document=doc,
+                    score=score
+                )
+                for doc, score in zip(documents, scores)
+            ]
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error during reranking: {str(e)}"
+        )
 

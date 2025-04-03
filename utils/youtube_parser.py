@@ -1,9 +1,8 @@
 from typing import Optional
 
 from youtube_transcript_api import YouTubeTranscriptApi
-
+from exceptions import YoutubeParserError
 from config import LANGUAGE
-from loggings import logger
 
 
 class YoutubeParser:
@@ -35,4 +34,4 @@ class YoutubeParser:
 
             return transcript_text
         except Exception as e:
-            logger(f"Failed to fetch transcript for video {video_url}: {e}", level="error")
+            raise YoutubeParserError(f"Failed to fetch transcript for video {video_url}: {e}")

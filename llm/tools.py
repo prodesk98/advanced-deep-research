@@ -3,7 +3,7 @@ from typing import Optional
 
 from langchain_core.tools import StructuredTool
 
-from loggings import logger
+from exceptions import ToolsError
 from schemas import (
     TranscriptYoutubeVideoSchema,
     ScrappingWebSiteSchema,
@@ -36,7 +36,7 @@ class Tools:
             youtube_parser = YoutubeParser()
             return youtube_parser.fetch(video_url)
         except Exception as e:
-            logger(e, level="error")
+            raise ToolsError(f"Failed to fetch transcript from YouTube: {e}")
 
 
     @staticmethod
@@ -54,7 +54,7 @@ class Tools:
             # Convert the content to markdown
             return site_parser.to_markdown()
         except Exception as e:
-            logger(e, level="error")
+            raise ToolsError(f"Failed to fetch website: {e}")
 
 
     @staticmethod
@@ -73,7 +73,7 @@ class Tools:
             arXiv_parser = ArxivParser()
             return arXiv_parser.search(query, max_results)
         except Exception as e:
-            logger(e, level="error")
+            raise ToolsError(f"Failed to fetch papers from ArXiv: {e}")
 
 
     def SearchDocuments(self, query: str, max_results: int = 10) -> Optional[str]:
@@ -92,7 +92,9 @@ class Tools:
             semantic_search = SemanticSearch(self._namespace)
             return json.dumps(semantic_search.search(query, max_results))
         except Exception as e:
-            logger(e, level="error")
+            raise ToolsError(
+                f"Failed to fetch documents from semantic search: {e}"
+            )
 
 
     @staticmethod
@@ -112,7 +114,9 @@ class Tools:
             google_search = GoogleSearch()
             return json.dumps(google_search.search(query, max_results))
         except Exception as e:
-            logger(e, level="error")
+            raise ToolsError(
+                f"Failed to fetch documents from Google: {e}"
+            )
 
 
     def get(self) -> list[StructuredTool]:

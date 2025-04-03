@@ -19,10 +19,15 @@ from config import (
     OPENAI_API_KEY,
     OPENAI_MODEL,
     OPENAI_MAX_TOKENS,
-    OPENAI_TEMPERATURE, OPENAI_API_BASE,
+    OPENAI_TEMPERATURE, OPENAI_API_BASE, NATURAL_LANGUAGE,
 )
+from loggings import logger
 from prompt_engineering import SUMMARIZER_PROMPT, FLASHCARD_PROMPT
 from schemas import FlashCardSchema, FlashCardSchemaRequest
+from exceptions import (
+    GoogleSearchError, SemanticSearchError,
+    ArxivParserError, SiteParserError, YoutubeParserError
+)
 from .base import BaseLLM
 from .tools import Tools
 
@@ -93,7 +98,11 @@ class OpenAILLM(BaseLLM):
     @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
     def generate(self, chat_history: list[BaseMessage], placeholder: Optional[DeltaGenerator]) -> str:
         # System template
-        template = SUMMARIZER_PROMPT.replace("current_time", datetime.now().strftime("%m-%d-%Y %H:%M:%S"))
+        template = (
+            SUMMARIZER_PROMPT
+            .replace("{{current_time}}", datetime.now().strftime("%m-%d-%Y %H:%M:%S")) # Replace current time if have it.
+            .replace("{{natural_language}}", NATURAL_LANGUAGE) # Replace natural language if have it.
+        )
         # Generate messages structure
         messages = [
             SystemMessage(template),
@@ -122,13 +131,27 @@ class OpenAILLM(BaseLLM):
         )
         #
 
-        result: dict = agent_executor.invoke(
-            {
-                "chat_history": chat_history,
-                "agent_scratchpad": [],
-            }
-        )
-        return result.get("output", "")
+        try:
+            result: dict = agent_executor.invoke(
+                {
+                    "chat_history": chat_history,
+                    "agent_scratchpad": [],
+                }
+            )
+            return result.get("output", "")
+        except GoogleSearchError as e:
+            return e.message
+        except SemanticSearchError as e:
+            return e.message
+        except ArxivParserError as e:
+            return e.message
+        except SiteParserError as e:
+            return e.message
+        except YoutubeParserError as e:
+            return e.message
+        except Exception as e:
+            return f"An error occurred: {e}"
+
 
 
     @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
@@ -139,12 +162,15 @@ class OpenAILLM(BaseLLM):
         :param quantities:
         :return:
         """
+        template = (
+            FLASHCARD_PROMPT.replace("{{natural_language}}", NATURAL_LANGUAGE)  # Replace natural language if have it.
+        )
         # Create a structured prompt for the flashcard generation
         system_prompt = ChatPromptTemplate.from_messages(
             messages=[
                 SystemMessagePromptTemplate(
                     prompt=PromptTemplate(
-                        template=FLASHCARD_PROMPT,
+                        template=template,
                         input_variables=[
                             "quantities"
                         ],
@@ -168,7 +194,13 @@ class OpenAILLM(BaseLLM):
         )
         #
 
-        # Execute the chain and return the flashcards
-        output: FlashCardSchemaRequest = chain.invoke({"quantities": quantities})
-        #
-        return output.flashcards
+        try:
+            # Execute the chain and return the flashcards
+            output: FlashCardSchemaRequest = chain.invoke({"quantities": quantities})
+            #
+            assert len(output.flashcards) > 0, "No flashcards generated"
+            assert len(output.flashcards) == quantities, "Number of flashcards generated"
+            return output.flashcards
+        except Exception as e:
+            logger(f"Error generating flashcards: {e}", level="error")
+            return []

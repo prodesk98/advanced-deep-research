@@ -1,12 +1,14 @@
 from databases import Qdrant
-from llm.embedding import EmbeddingOpenAI
+from llm import get_embeddings, get_reranker
+from exceptions import SemanticSearchError
 
 
 class SemanticSearch:
     def __init__(self, namespace: str = "default"):
         self._namespace = namespace
         self._vectordb = Qdrant(namespace)
-        self._embedding = EmbeddingOpenAI()
+        self._embedding = get_embeddings()
+        self._reranker = get_reranker()
 
     def search(self, query: str, limit: int = 10) -> list[dict]:
         """
@@ -15,12 +17,18 @@ class SemanticSearch:
         :param limit: The maximum number of results to return.
         :return: A list of dictionaries containing the search results.
         """
-        vector = self._embedding.embed(query)
-        results = self._vectordb.query(vector, limit=limit)
-        return [
-            {
-                "score": result.score,
-                **result.metadata,
-            }
-            for result in results
-        ]
+        try:
+            vectors = self._embedding.embed([query])
+            results = self._vectordb.query(vectors[0], limit=limit)
+            reranked_results = self._reranker.rerank(query, [result.metadata['text'] for result in results])
+            return [
+                {
+                    "score": result.score,
+                    **result.metadata,
+                }
+                for result in reranked_results
+            ]
+        except Exception as e:
+            raise SemanticSearchError(
+                f"Failed to perform semantic search: {e}"
+            )

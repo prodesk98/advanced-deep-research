@@ -1,6 +1,7 @@
 from typing import Optional
 from utils import HTTPRequest
 from markdownify import markdownify as md
+from exceptions import SiteParserError
 
 
 class SiteParser:
@@ -16,9 +17,9 @@ class SiteParser:
         if not response:
             return None
         if not response.status_code == 200: # Status: OK (200)
-            raise RuntimeError(
-                f"Failed to fetch the URL: {self._url}, "
-                f"Status Code: {response.status_code}, "
-                f"Response: {response.text}"
+            raise SiteParserError(
+                self._url,
+                response.status_code,
+                response.text,
             )
         return md(response.text)

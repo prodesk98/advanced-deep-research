@@ -23,10 +23,10 @@ class HTTPRequest:
     def _build_request(self) -> requests.Request:
         self.headers.setdefault("Accept", "application/json, text/plain, text/html")
         self.headers.setdefault("User-Agent",
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-            "AppleWebKit/537.36 (KHTML, like Gecko) "
-            "Chrome/122.0.0.0 Safari/537.36 "
-            f"[({PROJECT_NAME}) MySemanticTool/1.0]"
+            f"Mozilla/5.0 AppleWebKit/537.36 "
+            f"(KHTML, like Gecko; compatible; "
+            f"{PROJECT_NAME}/1.0; "
+            f"+https://github.com/prodesk98/ResumidorLLM)"
         )
 
         return requests.Request(

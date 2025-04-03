@@ -1,5 +1,6 @@
 import os
 from typing import Optional
+from exceptions import PDFParserError
 
 import pymupdf4llm
 import tempfile
@@ -21,7 +22,7 @@ class PDFParser:
             content = pymupdf4llm.to_markdown(self._path)
             return content
         except Exception as e:
-            raise RuntimeError(f"Failed to convert PDF to text: {e}")
+            raise PDFParserError(f"Failed to convert PDF to text: {e}")
         finally:
             os.remove(self._path)  # Remove the temporary file after reading
 

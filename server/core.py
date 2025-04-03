@@ -53,6 +53,10 @@ class Reranker:
             logger.warning("Received empty documents list for reranking.")
             return [], []
 
+        if len(documents) == 0:
+            logger.warning("No documents provided for reranking.")
+            return [], []
+
         logger.info(f"Reranking {len(documents)} documents for query: {query}")
 
         sentence_pairs = [[query, doc] for doc in documents]

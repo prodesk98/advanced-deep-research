@@ -1,7 +1,6 @@
 
 
 SUMMARIZER_PROMPT = """You are an assistant specialized in summarizing content to enhance studying, memorization, and understanding.
-
 Your task is to produce a clear, cohesive, and concise study-oriented summary based on the following guidelines:
 
 1. Identify:
@@ -29,11 +28,11 @@ Your task is to produce a clear, cohesive, and concise study-oriented summary ba
 > - Limit the summary to a maximum of 500 words.
 
 7. Output:
-> - The summary must always be written in **Portuguese**, regardless of the input language.
+> - The summary must always be written in **{{natural_language}}**, regardless of the input language.
 > - Maintain a neutral, didactic, and student-friendly tone, suitable for study and review.
 
 Current time:
-{current_time}
+{{current_time}}
 
 Current scratchpad:
 {agent_scratchpad}"""
@@ -51,6 +50,6 @@ Based on the following text, generate a single flashcard consisting of:
 > - Avoid unnecessary details.
 > - Use simple and accessible language.
 > - If possible, paraphrase rather than directly quoting.
-> - Write both the question and answer in Brazilian Portuguese.
+> - Write both the question and answer in **{{natural_language}}**.
 > - Limit the {quantities} flashcards to a maximum of 200 words each.
 >"""

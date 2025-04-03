@@ -1,13 +1,14 @@
 from typing import Optional
+from llm import get_reranker
+from exceptions import ArxivParserError
 
 import arxiv
-
-from loggings import logger
 
 
 class ArxivParser:
     def __init__(self):
         self._client = arxiv.Client()
+        self._reranker = get_reranker()
 
     def search(self, query: str, max_results: int = 3) -> Optional[str]:
         """
@@ -32,13 +33,16 @@ class ArxivParser:
             if not results:
                 return "No results found."
 
+            reranked_results = self._reranker.rerank(
+                query, [f"**{result.title}**\n---{result.summary}---\n" for result in results])
+
             # Format the results
             formatted_results = "\n".join(
                 [
-                    f"Title: {result.title}\nSummary: {result.summary}\n"
-                    for result in results
+                    result.document
+                    for result in reranked_results
                 ]
             )
             return formatted_results
         except Exception as e:
-            logger(f"Failed to fetch papers from arXiv: {e}", level="error")
+            raise ArxivParserError(f"Failed to fetch papers from arXiv: {e}")

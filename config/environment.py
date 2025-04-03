@@ -6,12 +6,16 @@ from pydantic import MongoDsn
 
 load_dotenv()
 
-PROJECT_NAME = environ.get("PROJECT_NAME", "Resumidor")
-LANGUAGE = environ.get("LANGUAGE", "en")
+PROJECT_NAME = environ.get("PROJECT_NAME", "ResumidorLLM")
+LANGUAGE = environ.get("LANGUAGE", "en") # language code
+NATURAL_LANGUAGE = environ.get("NATURAL_LANGUAGE", "English") # natural language
 
 OPENAI_API_KEY = environ.get("OPENAI_API_KEY", "default")
 if not OPENAI_API_KEY:
     raise ValueError("OPENAI_API_KEY not found in environment variables.")
+
+LOCALLY_API_BASE = environ.get("LOCALLY_API_BASE", "http://localhost:8502")
+LOCALLY_API_KEY = environ.get("LOCALLY_API_KEY", "default")
 
 # Set the OpenAI API base URL
 OPENAI_API_BASE = environ.get("OPENAI_API_BASE", "https://api.openai.com/v1")
