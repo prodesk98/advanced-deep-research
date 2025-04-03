@@ -7,7 +7,7 @@ from tenacity import (
     retry
 )
 
-from config import OPENAI_API_KEY, OPENAI_EMBEDDING_MODEL
+from config import OPENAI_API_KEY, OPENAI_EMBEDDING_MODEL, OPENAI_API_BASE
 from loggings import logger
 from .base import BaseEmbedding
 
@@ -18,7 +18,10 @@ class EmbeddingOpenAI(BaseEmbedding):
     """
 
     def __init__(self):
-        self._client = OpenAI(api_key=OPENAI_API_KEY)
+        self._client = OpenAI(
+            base_url=OPENAI_API_BASE,
+            api_key=OPENAI_API_KEY
+        )
 
     @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
     def embed(self, text: str) -> List[float]:

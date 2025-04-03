@@ -3,7 +3,7 @@ from llm.openai_embedding import EmbeddingOpenAI
 
 
 class SemanticSearch:
-    def __init__(self, namespace: str):
+    def __init__(self, namespace: str = "default"):
         self._namespace = namespace
         self._vectordb = Qdrant(namespace)
         self._embedding = EmbeddingOpenAI()

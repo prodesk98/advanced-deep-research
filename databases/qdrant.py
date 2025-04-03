@@ -3,6 +3,7 @@ from typing import Optional
 from schemas import QueryResultSchema, UpsertSchema
 from .base import BaseQdrant
 
+
 class Qdrant(BaseQdrant):
     def __init__(self, namespace: Optional[str] = None):
         super().__init__(namespace)
@@ -16,5 +17,5 @@ class Qdrant(BaseQdrant):
     def delete(self, ids: list[int]) -> None:
         super().delete(ids)
 
-    def delete_namespace(self, namespace: str) -> None:
+    def delete_namespace(self, namespace: str = "default") -> None:
         super().delete_namespace(namespace)

@@ -125,31 +125,36 @@ class Tools:
             StructuredTool.from_function(
                 func=self.TranscriptYoutubeVideo,
                 name="TranscriptYoutubeVideo",
-                description="Fetch the transcript of a YouTube video.",
+                description="Fetch the transcript of a YouTube video."
+                            "Use when you need to obtain the transcription of a YouTube video.",
                 args_schema=TranscriptYoutubeVideoSchema,
             ),
             StructuredTool.from_function(
                 func=self.ScrappingWebSite,
                 name="ScrappingWebSite",
-                description="Scrape a website and convert its content to markdown.",
+                description="Scrape a website and convert its content to markdown."
+                            "Use when you need to scrape a website and convert its content to markdown.",
                 args_schema=ScrappingWebSiteSchema,
             ),
             StructuredTool.from_function(
                 func=self.ArxivPaperSearch,
                 name="ArxivPaperSearch",
-                description="Search for papers on arXiv based on a query.",
+                description="Search for papers on arXiv based on a query."
+                            "Use when you need to search for papers on arXiv based on a query.",
                 args_schema=ArxivPaperSearchSchema,
             ),
             StructuredTool.from_function(
                 func=self.SearchDocuments,
                 name="SearchDocuments",
-                description="Search for a query using a search documents.",
+                description="Search for a query using a search documents."
+                            "Use this tool to get more information about a topic.",
                 args_schema=SearchDocumentsSchema,
             ),
             StructuredTool.from_function(
                 func=self.SearchGoogleEngine,
                 name="SearchGoogleEngine",
-                description="Search for a query using Google search engine.",
+                description="Search for a query using Google search engine."
+                            "Use this tool to get more information about a topic on the internet.",
                 args_schema=SearchGoogleEngineSchema,
             ),
         ]
