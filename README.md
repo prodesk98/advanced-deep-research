@@ -3,12 +3,6 @@ Optimize text analysis by summarizing and extracting the most relevant informati
 
 # How to use
 
-### Download Model
-```bash
-   echo "HF_TOKEN=<Your huggingface token>" > .env.vllm
-   python download.py -h
-```
-
 ### Environment Setup
 
 1. Copy the `.env.example` file to `.env` and fill in your OpenAI API key.
@@ -26,7 +20,13 @@ Optimize text analysis by summarizing and extracting the most relevant informati
     ```bash
     poetry run streamlit run app.py
     ```
-   
+
+### Download Model
+```bash
+   echo "HF_TOKEN=<Your huggingface token>" > .env
+   python download.py
+```
+
 ### Deployment using Docker
 ```bash
     docker compose up -d

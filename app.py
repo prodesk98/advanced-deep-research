@@ -105,7 +105,7 @@ if st.session_state.summary:
                 st.error(f"Erro ao gerar flashcards: {e}")
 
     if st.button("Salvar"):
-        st.success("Flashcards salvos com sucesso!")
+        st.success("Resumo salvo com sucesso!")
 
 # Step 4: Flashcard Viewer
 if st.session_state.flashcards:
