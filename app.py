@@ -7,6 +7,9 @@ from utils import PDFParser
 
 client = OpenAILLM()
 
+pdf_text = ""
+prompt = None
+
 # --- Sidebar ---
 with st.sidebar:
     if st.button("➕ Novo"):
@@ -17,6 +20,18 @@ with st.sidebar:
 
     # Step 0: Upload PDF
     uploaded_file = st.file_uploader("Envie um PDF para extração de texto", type="pdf")
+
+    if uploaded_file is not None:
+        try:
+            pdf_parser = PDFParser(uploaded_file.read())
+            pdf_text = pdf_parser.to_text()
+            if st.button("Analisar PDF"):
+                prompt = pdf_text
+                pdf_text = ""
+                uploaded_file = None
+        except Exception as e:
+            st.error(f"Erro ao ler o PDF: {e}")
+
 #
 
 # Initialize session states
@@ -33,23 +48,7 @@ if "messages" not in st.session_state:
     st.session_state.messages = []
 #
 
-pdf_text = ""
-if uploaded_file is not None:
-    try:
-        pdf_parser = PDFParser(uploaded_file.read())
-        pdf_text = pdf_parser.to_text()
-        st.success("PDF lido com sucesso!")
-    except Exception as e:
-        st.error(f"Erro ao ler o PDF: {e}")
-
 # Step 1: User Input or PDF content
-prompt = None
-
-if pdf_text:
-    st.subheader("Texto extraído do PDF:")
-    st.write(pdf_text)
-    if st.button("Usar texto do PDF para gerar resumo"):
-        prompt = pdf_text
 
 # Optional manual input
 manual_prompt = st.chat_input("Digite seu texto...")
