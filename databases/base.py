@@ -120,7 +120,7 @@ class BaseQdrant(ABC):
             points_selector=PointsSelector(ids),
         )
 
-    def delete_namespace(self, namespace: str) -> None:
+    def delete_namespace(self, namespace: str = "default") -> None:
         self._client.delete(
             collection_name=self._collection,
             points_selector=FilterSelector(

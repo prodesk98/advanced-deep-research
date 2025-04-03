@@ -20,7 +20,7 @@ from services import SemanticSearch, GoogleSearch
 
 
 class Tools:
-    def __init__(self, namespace: str):
+    def __init__(self, namespace: str = "default"):
         self._namespace = namespace
 
     @staticmethod

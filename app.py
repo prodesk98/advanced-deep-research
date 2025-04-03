@@ -4,10 +4,8 @@ from langchain_core.messages import HumanMessage, AIMessage
 from llm import OpenAILLM
 from utils import PDFParser
 
-namespace = "resumidor"
-client = OpenAILLM(
-    namespace=namespace,
-)
+namespace = "default"
+client = OpenAILLM(namespace=namespace)
 
 st.title("Resumo de Textos com LLM")
 

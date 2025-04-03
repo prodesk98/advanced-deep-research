@@ -9,8 +9,8 @@ load_dotenv()
 PROJECT_NAME = environ.get("PROJECT_NAME", "Resumidor")
 LANGUAGE = environ.get("LANGUAGE", "en")
 
-OPENAI_API_KEY = environ.get("OPENAI_API_KEY")
-if OPENAI_API_KEY is None:
+OPENAI_API_KEY = environ.get("OPENAI_API_KEY", "default")
+if not OPENAI_API_KEY:
     raise ValueError("OPENAI_API_KEY not found in environment variables.")
 
 # Set the OpenAI API base URL

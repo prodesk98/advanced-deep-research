@@ -16,5 +16,5 @@ class Qdrant(BaseQdrant):
     def delete(self, ids: list[int]) -> None:
         super().delete(ids)
 
-    def delete_namespace(self, namespace: str) -> None:
+    def delete_namespace(self, namespace: str = "default") -> None:
         super().delete_namespace(namespace)

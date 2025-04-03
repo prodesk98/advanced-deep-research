@@ -14,23 +14,22 @@ services:
     environment:
       - NVIDIA_VISIBLE_DEVICES=all
       - NVIDIA_DRIVER_CAPABILITIES=compute,utility
-      - HUGGING_FACE_HUB_TOKEN=${HUGGING_FACE_HUB_TOKEN}
     ports:
       - "8005:8000"
     volumes:
       - huggingface_cache:/root/.cache/huggingface
-      - ./llm_models:/llm_models
+      - ./models:/opt/models
     ipc: host
     command: >
-      --model /llm_models/Qwen2.5-7B-Instruct-Q4_K_M.gguf
-      --tokenizer Qwen/Qwen2.5-7B-Instruct
+      --model /opt/models/Qwen2.5-7B-Instruct-Q4_K_M.gguf
+      --tokenizer Qwen/Qwen2.5-0.5B-Instruct-GGUF
       --load-format gguf
       --tensor-parallel-size 1
       --disable-sliding-window
       --max-model-len 10000
       --gpu-memory-utilization 0.98
       --enable-auto-tool-choice
-      --tool-call-parser llama3_json
+      --tool-call-parser hermes
 
   frontend:
     build:

@@ -73,7 +73,7 @@ class OpenAILLM(BaseLLM):
     OpenAI LLM wrapper for the OpenAI API.
     """
 
-    def __init__(self, namespace: str):
+    def __init__(self, namespace: str = "default"):
         self._tools = Tools(namespace)
         self.structured_llm = ChatOpenAI(
             base_url=OPENAI_API_BASE,
