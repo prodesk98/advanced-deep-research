@@ -1,5 +1,5 @@
 from databases import Qdrant
-from llm.openai_embedding import EmbeddingOpenAI
+from llm.embedding import EmbeddingOpenAI
 
 
 class SemanticSearch:
