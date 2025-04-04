@@ -1,5 +1,4 @@
 class InstanceManager:
-    from .openai_llm import OpenAILLM
     from .embeddings import Embeddings
     from .reranker import Reranker
 
@@ -11,7 +10,6 @@ class InstanceManager:
             cls._instances = {
                 "embeddings": cls.Embeddings(),
                 "reranker": cls.Reranker(),
-                "llm": cls.OpenAILLM(),
             }
         return cls._instances
 
@@ -31,12 +29,5 @@ def get_embeddings():
     """
     return InstanceManager.get_instances()["embeddings"]
 
-def get_llm():
-    """
-    Get the LLM instance.
-    :return: "OpenAILLM"
-    :raises LLMError: If LLM initialization fails.
-    """
-    return InstanceManager.get_instances()["llm"]
 
-__all__ = ["get_llm", "get_reranker", "get_embeddings"]
+__all__ = ["get_reranker", "get_embeddings"]

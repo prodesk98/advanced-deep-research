@@ -13,7 +13,14 @@ class SiteParser:
         Convert the content of the URL to Markdown format.
         :return: The content in Markdown format.
         """
-        response = HTTPRequest(self._url).send()
+        try:
+            response = HTTPRequest(self._url).send()
+        except Exception as e:
+            raise SiteParserError(
+                self._url,
+                None,
+                str(e),
+            )
         if not response:
             return None
         if not response.status_code == 200: # Status: OK (200)

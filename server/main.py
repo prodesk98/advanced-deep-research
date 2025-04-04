@@ -22,7 +22,7 @@ app = FastAPI(
 @app.post("/embeddings", response_model=EmbeddingsResponse)
 async def embeddings(
     payload: EmbeddingsRequest,
-) -> EmbeddingsResponse:
+) -> "EmbeddingsResponse":
     try:
         embeddings_result = await embed_texts(payload.texts)
         return EmbeddingsResponse(
@@ -38,7 +38,7 @@ async def embeddings(
 @app.post("/rerank", response_model=RerankResponse)
 async def rerank(
     payload: RerankRequest,
-) -> RerankResponse:
+) -> "RerankResponse":
     try:
         rerank_result = await rerank_documents(payload.query, payload.documents)
         documents, scores = rerank_result

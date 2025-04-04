@@ -1,3 +1,6 @@
+from loggings import logger
+from typing import Optional
+
 
 class GoogleSearchError(Exception):
     """Custom exception for Google search errors."""
@@ -12,11 +15,14 @@ class SemanticSearchError(Exception):
         super().__init__(self.message)
 
 
-from loggings import logger
+class SemanticUpsertError(Exception):
+    def __init__(self, message: str):
+        self.message = message
+        super().__init__(self.message)
 
 
-class ArxivParserError(Exception):
-    """Custom exception for arXiv parser errors."""
+class ArxivSearchError(Exception):
+    """Custom exception for arXiv search errors."""
     def __init__(self, message: str):
         self.message = message
         super().__init__(self.message)
@@ -25,7 +31,7 @@ class ArxivParserError(Exception):
 
 class SiteParserError(Exception):
     """Custom exception for site parser errors."""
-    def __init__(self, url: str, code: int, content: str):
+    def __init__(self, url: str, code: Optional[int], content: str):
         self.message = f"Site parser error for url {url}: {code}: {content}"
         self.url = url
         self.code = code
@@ -47,9 +53,6 @@ class PDFParserError(Exception):
     def __init__(self, message: str):
         self.message = message
         super().__init__(self.message)
-
-
-from typing import Optional
 
 
 class LLMException(Exception):
@@ -80,6 +83,7 @@ class RerankError(LLMException):
 
 class InvalidRerankValue(ValueError):
     def __init__(self, message: str):
+        self.message = message
         super().__init__(message)
 
 

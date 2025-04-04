@@ -5,13 +5,13 @@ from tenacity import wait_random_exponential, retry, stop_after_attempt
 from transformers import AutoModel, AutoModelForSequenceClassification
 
 from .env import RERANKER_MODEL, EMBEDDING_MODEL
-from loguru import logger
+from loggings import logger
 
 
 class Embedding:
     def __init__(self) -> None:
         device = 'cuda' if torch.cuda.is_available() else 'cpu'
-        logger.info(f"Loading embedding model on {device}...")
+        logger(f"Loading embedding model on {device}...", "info")
 
         self.device = device
         self._model = AutoModel.from_pretrained(
@@ -25,7 +25,7 @@ class Embedding:
         if not texts or not all(isinstance(t, str) and t.strip() for t in texts):
             raise ValueError("Input texts must be a non-empty list of non-empty strings.")
 
-        logger.info(f"Generating embeddings for {len(texts)} texts.")
+        logger(f"Generating embeddings for {len(texts)} texts.", "info")
         return [
             self._model.encode(text, task="text-matching", max_length=2048)
             for text in texts
@@ -35,7 +35,7 @@ class Embedding:
 class Reranker:
     def __init__(self) -> None:
         device = 'cuda' if torch.cuda.is_available() else 'cpu'
-        logger.info(f"Loading reranker model on {device}...")
+        logger(f"Loading reranker model on {device}...", "info")
 
         self.device = device
         self._model = AutoModelForSequenceClassification.from_pretrained(
@@ -50,17 +50,20 @@ class Reranker:
         if not query or not isinstance(query, str) or not query.strip():
             raise ValueError("Query must be a non-empty string.")
         if not documents:
-            logger.warning("Received empty documents list for reranking.")
+            logger("Received empty documents list for reranking.", "warning")
             return [], []
 
         if len(documents) == 0:
-            logger.warning("No documents provided for reranking.")
+            logger("No documents provided for reranking.", "warning")
             return [], []
 
-        logger.info(f"Reranking {len(documents)} documents for query: {query}")
+        logger(f"Reranking {len(documents)} documents for query: {query}", "info")
 
         sentence_pairs = [[query, doc] for doc in documents]
-        scores = self._model.compute_score(sentence_pairs, max_length=1024)
+        scores: list[float] = self._model.compute_score(sentence_pairs, max_length=1024)
+
+        if len(documents) == 1:
+            return [documents[0]], [scores[0]]
 
         reranked = sorted(zip(documents, scores), key=lambda x: x[1], reverse=True)
         reranked_documents, rerank_scores = zip(*reranked)

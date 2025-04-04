@@ -48,3 +48,4 @@ class HTTPRequest:
             return response
         except Exception as e:
             logger(f"Failed to send request: {e}", level="error")
+            raise e

@@ -1,6 +1,8 @@
 from typing import Optional
 
-from schemas import Conversation
+from pydantic import UUID4
+
+from schemas import Message
 from .base import BaseFactory
 
 
@@ -9,15 +11,15 @@ class ConversationFactory(BaseFactory):
         super().__init__(
             collection="conversations",
             namespace=namespace,
-            T=Conversation
+            T=Message
         )
 
-    def all(self, limit: int = 50) -> list[Conversation]:
+    def all(self, limit: int = 50) -> list[Message]:
         return super().all(limit=limit)
 
-    def add(self, conversation: Conversation) -> None:
-        conversation.namespace = self._namespace  # Add namespace to conversation
-        super().add(conversation)
+    def add(self, message: Message) -> None:
+        message.namespace = UUID4(self._namespace)  # Add namespace to message
+        super().add(message)
 
     def delete(self) -> None:
         super().delete()

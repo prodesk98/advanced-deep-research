@@ -26,7 +26,7 @@ from prompt_engineering import SUMMARIZER_PROMPT, FLASHCARD_PROMPT
 from schemas import FlashCardSchema, FlashCardSchemaRequest
 from exceptions import (
     GoogleSearchError, SemanticSearchError,
-    ArxivParserError, SiteParserError, YoutubeParserError
+    ArxivSearchError, SiteParserError, YoutubeParserError
 )
 from .base import BaseLLM
 from .tools import Tools
@@ -45,12 +45,12 @@ class AgentCallbackHandler(BaseCallbackHandler):
         self.actions: dict[str, str] = {}
 
     def on_agent_action(
-            self,
-            action: AgentAction,
-            *,
-            run_id: UUID,
-            parent_run_id: Optional[UUID] = None,
-            **kwargs: Any,
+        self,
+        action: AgentAction,
+        *,
+        run_id: UUID,
+        parent_run_id: Optional[UUID] = None,
+        **kwargs: Any,
     ) -> Any:
         self._feedback_text += f"\n\n⚙️ Agent action: {action.tool} with input: {action.tool_input}"
         self.actions[run_id.hex] = action.tool
@@ -78,8 +78,9 @@ class OpenAILLM(BaseLLM):
     OpenAI LLM wrapper for the OpenAI API.
     """
 
-    def __init__(self, namespace: str = "default"):
-        self._tools = Tools(namespace)
+    def __init__(self, namespace: Optional[str] = None):
+        self._namespace = namespace or "default"
+        self._tools = Tools(self._namespace)
         self.structured_llm = ChatOpenAI(
             base_url=OPENAI_API_BASE,
             api_key=OPENAI_API_KEY,
@@ -97,6 +98,16 @@ class OpenAILLM(BaseLLM):
 
     @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
     def generate(self, chat_history: list[BaseMessage], placeholder: Optional[DeltaGenerator]) -> str:
+        logger(
+            " ".join(
+                [
+                    f"[{self._namespace}] Starting agent generation...",
+                    f"tools: {len(self._tools.get())}",
+                    f"chat: {len(chat_history)}",
+                ]
+            ),
+            level="info",
+        )
         # System template
         template = (
             SUMMARIZER_PROMPT
@@ -143,7 +154,7 @@ class OpenAILLM(BaseLLM):
             return e.message
         except SemanticSearchError as e:
             return e.message
-        except ArxivParserError as e:
+        except ArxivSearchError as e:
             return e.message
         except SiteParserError as e:
             return e.message
@@ -151,7 +162,6 @@ class OpenAILLM(BaseLLM):
             return e.message
         except Exception as e:
             return f"An error occurred: {e}"
-
 
 
     @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))

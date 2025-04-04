@@ -34,14 +34,14 @@ OPENAI_MAX_TOKENS = int(environ.get("OPENAI_MAX_TOKENS", 1000))
 
 # MongoDB configuration
 MONGODB_URI: Optional[MongoDsn] = environ.get("MONGODB_URI")
-MONGODB_DATABASE: Optional[str] = environ.get("MONGODB_DATABASE", "summarizer")
+MONGODB_DATABASE: Optional[str] = environ.get("MONGODB_DATABASE", PROJECT_NAME)
 if MONGODB_URI is None:
     raise ValueError("MONGODB_URI not found in environment variables.")
 #
 
 # Qdrant configuration
 QDRANT_DSN: Optional[str] = environ.get("QDRANT_DSN", "http://localhost:6333")
-QDRANT_COLLECTION: Optional[str] = environ.get("QDRANT_COLLECTION", "summarizer")
+QDRANT_COLLECTION: Optional[str] = environ.get("QDRANT_COLLECTION", PROJECT_NAME)
 if QDRANT_DSN is None:
     raise ValueError("QDRANT_DSN not found in environment variables.")
 #

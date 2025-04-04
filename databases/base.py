@@ -5,19 +5,27 @@ from uuid import uuid4
 from pydantic import BaseModel
 from pymongo import MongoClient
 from qdrant_client import QdrantClient
-from qdrant_client.conversions.common_types import Distance, VectorParams, PointStruct, PointsSelector, Filter
-from qdrant_client.http.models import FilterSelector, FieldCondition, MatchValue
+from qdrant_client.models import (
+    Distance, FilterSelector, FieldCondition,
+    MatchValue, Filter, VectorParams,
+    PointStruct, PointsSelector
+)
 
 from config import QDRANT_DSN, QDRANT_COLLECTION
 from config.environment import MONGODB_URI, MONGODB_DATABASE
-from schemas import UpsertSchema, QueryResultSchema
+from schemas import UpsertSchema, QueryResultSchema, MetadataSchema
 
 _T = TypeVar("_T", bound=BaseModel)
 
 
 class BaseMongoDB(ABC):
     def __init__(self):
-        self._client = MongoClient(MONGODB_URI)
+        self._client = MongoClient(MONGODB_URI,  uuidRepresentation="standard")
+
+    def initialize(self) -> None:
+        conversations = self._client[MONGODB_DATABASE].get_collection("conversations")
+        conversations.create_index("namespace")
+        conversations.create_index("id", unique=True)
 
     def findOne(self, collection: str, filters: dict, T: Optional[Type[_T]] = None) -> Optional[_T | dict]:
         result = self._client[MONGODB_DATABASE].get_collection(collection).find_one(filters)
@@ -49,9 +57,8 @@ class BaseQdrant(ABC):
         self._namespace = namespace or str(uuid4())
         self._client = QdrantClient(QDRANT_DSN)
         self._collection = QDRANT_COLLECTION
-        self._initialize()
 
-    def _initialize(self) -> None:
+    def initialize(self) -> None:
         if self._client.collection_exists(self._collection):
             return # Collection already exists
 
@@ -59,7 +66,7 @@ class BaseQdrant(ABC):
         self._client.create_collection(
             collection_name=self._collection,
             vectors_config=VectorParams(
-                size=1536,
+                size=1024, # Dim size based jina-embeddings-v3
                 distance=Distance.DOT,
             )
         )
@@ -73,19 +80,15 @@ class BaseQdrant(ABC):
         #
 
     def upsert(self, data: list[UpsertSchema]) -> None:
-        def set_namespace(p: dict) -> dict:
-            p["namespace"] = self._namespace
-            return p
-
         self._client.upsert(
             collection_name=self._collection,
             points=[
                 PointStruct(
                     id=d.id,
                     vector=d.vector,
-                    payload=set_namespace(d.metadata),
+                    payload=d.metadata.model_dump(),
                 )
-                for i, d in enumerate(data)
+                for d in data
             ],
         )
 
@@ -94,21 +97,12 @@ class BaseQdrant(ABC):
             QueryResultSchema(
                 id=r.id,
                 score=r.score,
-                metadata=r.payload,
+                metadata=MetadataSchema(**r.payload),
             )
             for r in self._client.query_points(
                 collection_name=self._collection,
-                query_filter=Filter(
-                    must=[
-                        FieldCondition(
-                            key="namespace",
-                            match=MatchValue(
-                                value=self._namespace,
-                            ),
-                        )
-                    ]
-                ),
-                query_vector=vector,
+                query=vector,
+                query_filter=Filter(must=[FieldCondition(key="namespace", match=MatchValue(value=self._namespace))]),
                 with_payload=with_metadata,
                 limit=limit,
             ).points

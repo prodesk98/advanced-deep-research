@@ -13,10 +13,13 @@ from schemas import (
 )
 from utils import (
     SiteParser,
-    ArxivParser,
     YoutubeParser
 )
-from services import SemanticSearch, GoogleSearch
+from services import (
+    SemanticSearch,
+    GoogleSearch,
+    ArxivSearch,
+)
 
 
 class Tools:
@@ -70,7 +73,7 @@ class Tools:
         """
 
         try:
-            arXiv_parser = ArxivParser()
+            arXiv_parser = ArxivSearch()
             return arXiv_parser.search(query, max_results)
         except Exception as e:
             raise ToolsError(f"Failed to fetch papers from ArXiv: {e}")
@@ -144,7 +147,8 @@ class Tools:
                 func=self.ArxivPaperSearch,
                 name="ArxivPaperSearch",
                 description="Search for papers on arXiv based on a query."
-                            "Use when you need to search for papers on arXiv based on a query.",
+                            "Use when you need to search for papers on arXiv based on a query."
+                            "English Only.",
                 args_schema=ArxivPaperSearchSchema,
             ),
             StructuredTool.from_function(
@@ -158,7 +162,8 @@ class Tools:
                 func=self.SearchGoogleEngine,
                 name="SearchGoogleEngine",
                 description="Search for a query using Google search engine."
-                            "Use this tool to get more information about a topic on the internet.",
+                            "Use this tool to get more information about a topic on the internet."
+                            "English Only.",
                 args_schema=SearchGoogleEngineSchema,
             ),
         ]

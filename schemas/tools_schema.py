@@ -21,7 +21,7 @@ class ArxivPaperSearchSchema(BaseModel):
     query: str = Field(
         ...,
         title="Search Query",
-        description="The search query to find papers on arXiv",
+        description="The search query to find papers on arXiv. English Only.",
     )
     max_results: int = Field(
         5,
@@ -34,7 +34,7 @@ class SearchDocumentsSchema(BaseModel):
     query: str = Field(
         ...,
         title="Search Query",
-        description="The search query to find documents in the database",
+        description="The search query to find documents in the database.",
     )
     max_results: int = Field(
         10,
@@ -47,7 +47,7 @@ class SearchGoogleEngineSchema(BaseModel):
     query: str = Field(
         ...,
         title="Search Query",
-        description="The search query to find documents in the database",
+        description="The search query to find papers on Google. English Only.",
     )
     max_results: int = Field(
         10,
