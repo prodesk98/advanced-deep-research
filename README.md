@@ -24,7 +24,7 @@ Optimize text analysis by summarizing and extracting the most relevant informati
 ### Download Model
 ```bash
    echo "HF_TOKEN=<Your huggingface token>" > .env
-   python download.py
+   python download_cli.py
 ```
 
 ### Deployment using Docker

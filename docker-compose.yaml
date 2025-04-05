@@ -33,7 +33,7 @@ services:
 
   frontend:
     build:
-      dockerfile: frontend.Dockerfile
+      dockerfile: dockers/frontend.Dockerfile
       context: .
     env_file:
       - .env
@@ -42,7 +42,7 @@ services:
 
   backend:
     build:
-      dockerfile: backend.Dockerfile
+      dockerfile: dockers/backend.Dockerfile
       context: .
     deploy:
       resources:

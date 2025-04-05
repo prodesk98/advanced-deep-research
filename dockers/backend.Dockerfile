@@ -2,7 +2,7 @@ FROM python:3.13-slim-bullseye
 
 WORKDIR /app
 
-COPY pyproject.toml ./
+COPY ../pyproject.toml ./
 
 RUN pip install --upgrade pip && \
     pip install poetry && \
@@ -10,7 +10,7 @@ RUN pip install --upgrade pip && \
     poetry install --only main --no-root
 
 
-COPY . .
+COPY .. .
 
 EXPOSE 3000
 

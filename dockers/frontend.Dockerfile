@@ -2,14 +2,14 @@ FROM python:3.13-slim-bullseye
 
 WORKDIR /app
 
-COPY pyproject.toml ./
+COPY ../pyproject.toml ./
 
 RUN pip install --upgrade pip && \
     pip install poetry && \
     poetry config virtualenvs.create false && \
     poetry install --only main --no-root
 
-COPY . .
+COPY .. .
 
 EXPOSE 8501
 
