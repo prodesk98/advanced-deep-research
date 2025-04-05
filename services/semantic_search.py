@@ -37,16 +37,24 @@ class SemanticSearch(BaseSearchService):
         :return: A list of "SearchResultSchema" containing the search results.
         """
         try:
-            vectors = self._embedding.embed([query])
-            results = self._vectorstore.query(vectors[0], limit=limit)
-            reranked_results = self._reranker.rerank(query, [result.metadata.text for result in results])
+            results = self.query(query, limit)
+
+            if len(results) == 0:
+                return []
+
+            if len(results) == 1:
+                return results
+
+            # Rerank the results using the reranker
+            reranked_results = self._reranker.rerank(query, [result.text for result in results])
             return [
                 SearchResultSchema(
-                    score=result.score,
-                    text=result.document,
+                    score=ranked.score,
+                    text=ranked.document,
                 )
-                for result in reranked_results
+                for ranked in reranked_results
             ]
+            #
         except InvalidRerankValue as e:
             raise SemanticSearchError(
                 f"Invalid rerank value: {e.message}"
@@ -55,6 +63,8 @@ class SemanticSearch(BaseSearchService):
             raise SemanticSearchError(
                 f"Failed to rerank documents: {e.message}"
             )
+        except SemanticSearchError as e:
+            raise e
         except Exception as e:
             raise SemanticSearchError(
                 f"Failed to perform semantic search: {e}"
@@ -90,6 +100,28 @@ class SemanticSearch(BaseSearchService):
         except Exception as e:
             raise SemanticUpsertError(
                 f"Failed to upsert document into vector database: {e}"
+            )
+
+    def query(self, query: str, limit: int = 10) -> list["SearchResultSchema"]:
+        """
+        Query the vector database for the most relevant documents.
+        :param query: The query string to search for.
+        :param limit: The maximum number of results to return.
+        :return: A list of "SearchResultSchema" containing the search results.
+        """
+        try:
+            vectors = self._embedding.embed([query])
+            results = self._vectorstore.query(vectors[0], limit=limit)
+            return [
+                SearchResultSchema(
+                    score=result.score,
+                    text=result.metadata.text,
+                )
+                for result in results
+            ]
+        except Exception as e:
+            raise SemanticSearchError(
+                f"Failed to perform semantic search: {e}"
             )
 
     def delete_by_document_id(self, document_id: str) -> None:

@@ -54,3 +54,33 @@ Based on the following text, generate a single flashcard consisting of:
 > - Maximum of 200 words each.
 > - Minimum quantity of **{quantities}** flashcards.
 >"""
+
+# Based: https://github.com/zilliztech/deep-searcher/blob/master/deepsearcher/agent/deep_search.py#L12
+SUB_QUERY_PROMPT = """You are an assistant specialized in creating sub-queries to enhance the understanding of a given text.
+If this is a very simple question and no decomposition is necessary, then keep the only one original question in the python code list.
+
+Original Question: {original_query}
+
+### Example:
+Original Question: "Explain deep learning"
+Sub-Queries:
+- What is deep learning?
+- What is the difference between deep learning and machine learning?
+- What is the history of deep learning?"""
+#
+
+# Based: https://github.com/zilliztech/deep-searcher/blob/master/deepsearcher/agent/deep_search.py#L42
+REFLECT_PROMPT = """"Determine whether additional search queries are needed based on the original query, previous sub queries, and all retrieved document chunks. 
+If further research is required, provide a list of up to 3 search queries. If no further research is required, return an empty list.
+
+If the original query is to write a report, then you prefer to generate some further queries, instead return an empty list.
+
+Original Query: {original_query}
+
+Previous Sub Queries: {mini_questions}
+
+Related Chunks: 
+{mini_chunk_str}
+
+Respond exclusively in valid List of str format without any other text."""
+#

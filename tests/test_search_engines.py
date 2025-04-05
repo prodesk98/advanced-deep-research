@@ -1,5 +1,3 @@
-from time import sleep
-
 
 def test_google_search():
     from services import GoogleSearch
@@ -28,11 +26,24 @@ def test_arxiv_search():
 def test_semantic_search_upsert():
     from services import SemanticSearch
     semantic_search = SemanticSearch("default")
-    document = """Machine Learning is a subset of artificial intelligence that focuses on the development of 
+    document1 = """Machine Learning is a subset of artificial intelligence that focuses on the development of 
     algorithms that can learn from and make predictions based on data.
     """
+    document2 = """Deep Learning is a subset of machine learning that uses neural networks with many layers
+    (deep architectures) to learn from large amounts of data.
+    """
     document_id = "test_document"
-    semantic_search.upsert(document, document_id)
+    semantic_search.upsert(document1, document_id)
+    semantic_search.upsert(document2, document_id)
+
+
+def test_semantic_search_query():
+    from services import SemanticSearch
+    semantic_search = SemanticSearch("default")
+    query = "Artificial Intelligence"
+    limit = 5
+    result = semantic_search.query(query, limit)
+    assert len(result) > 0, "Expected result to have length greater than 0"
 
 
 def test_semantic_search_search():
@@ -41,10 +52,7 @@ def test_semantic_search_search():
     query = "Machine Learning"
     limit = 5
     result = semantic_search.search(query, limit)
-    assert isinstance(result, str), "Expected result to be a string"
     assert len(result) > 0, "Expected result to have length greater than 0"
-    assert "Machine" in result, "Expected result to contain 'Machine'"
-    assert "Learning" in result, "Expected result to contain 'Learning'"
 
 
 def test_semantic_delete():

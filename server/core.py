@@ -53,7 +53,7 @@ class Reranker:
             logger("Received empty documents list for reranking.", "warning")
             return [], []
 
-        if len(documents) == 0:
+        if len(documents) < 2:
             logger("No documents provided for reranking.", "warning")
             return [], []
 
