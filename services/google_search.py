@@ -5,9 +5,9 @@ from pydantic import BaseModel
 
 from llm import get_reranker
 from config import LANGUAGE
-from exceptions import GoogleSearchError, SiteParserError
+from exceptions import GoogleSearchError, WebParserParserError
 from llm.reranker import Reranker
-from utils import SiteParser
+from utils import WebParser
 from .base import BaseSearchService
 
 
@@ -52,8 +52,8 @@ class GoogleSearch(BaseSearchService):
             if parser:
                 for result in results:
                     try:
-                        result.content = SiteParser(result.url).to_markdown()
-                    except SiteParserError:
+                        result.content = WebParser().get_markdown(result.url)
+                    except WebParserParserError:
                         pass
 
             reranked_results = self._reranker.rerank(

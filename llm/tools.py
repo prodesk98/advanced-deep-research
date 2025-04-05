@@ -12,7 +12,7 @@ from schemas import (
     SearchGoogleEngineSchema,
 )
 from utils import (
-    SiteParser,
+    WebParser,
     YoutubeParser
 )
 from services import (
@@ -53,9 +53,9 @@ class Tools:
         """
         try:
             # Parse Website Constructor
-            site_parser = SiteParser(url)
+            web_parser = WebParser()
             # Convert the content to markdown
-            return site_parser.to_markdown()
+            return web_parser.get_markdown(url)
         except Exception as e:
             raise ToolsError(f"Failed to fetch website: {e}")
 

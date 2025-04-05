@@ -1,3 +1,5 @@
+import pytest
+
 
 def test_pdf_parser():
     from utils.pdf_parser import PDFParser
@@ -19,3 +21,17 @@ def test_youtube_parser():
     contents = youtube_parser.fetch(url)
     assert contents is not None, "YouTube parsing failed"
     assert "say the word" in contents, "YouTube content does not match expected value"
+
+
+@pytest.mark.asyncio
+async def test_web_parser():
+    from utils.web_parser import WebParser
+
+    for url in [
+        "https://example.com",
+        "https://www.python.org",
+    ]:
+        web_parser = WebParser()
+        contents = await web_parser.aget_markdown(url)
+        assert contents is not None, f"Web parsing failed for {url}"
+        assert "Example Domain" in contents or "Python" in contents, f"Web content does not match expected value for {url}"

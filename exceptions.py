@@ -29,12 +29,11 @@ class ArxivSearchError(Exception):
         logger(self.message, level="error")
 
 
-class SiteParserError(Exception):
+class WebParserParserError(Exception):
     """Custom exception for site parser errors."""
-    def __init__(self, url: str, code: Optional[int], content: str):
-        self.message = f"Site parser error for url {url}: {code}: {content}"
+    def __init__(self, url: str, content: str):
+        self.message = f"Web parser error for url {url}: {content}"
         self.url = url
-        self.code = code
         self.content = content
         super().__init__(self.message)
         logger(self.message, level="error")

@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException
+from tenacity import RetryError
 
 from server.schemas import (
     EmbeddingsRequest,
@@ -28,6 +29,11 @@ async def embeddings(
         return EmbeddingsResponse(
             embeddings=embeddings_result
         )
+    except RetryError as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Retry error during embedding: {str(e)}"
+        )
     except Exception as e:
         raise HTTPException(
             status_code=500,
@@ -50,6 +56,11 @@ async def rerank(
                 )
                 for doc, score in zip(documents, scores)
             ]
+        )
+    except RetryError as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Retry error during reranking: {str(e)}"
         )
     except Exception as e:
         raise HTTPException(

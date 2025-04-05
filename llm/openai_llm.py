@@ -26,7 +26,7 @@ from prompt_engineering import SUMMARIZER_PROMPT, FLASHCARD_PROMPT
 from schemas import FlashCardSchema, FlashCardSchemaRequest
 from exceptions import (
     GoogleSearchError, SemanticSearchError,
-    ArxivSearchError, SiteParserError,
+    ArxivSearchError, WebParserParserError,
     YoutubeParserError, GenerativeError
 )
 from .base import BaseLLM
@@ -157,7 +157,7 @@ class OpenAILLM(BaseLLM):
             return e.message
         except ArxivSearchError as e:
             return e.message
-        except SiteParserError as e:
+        except WebParserParserError as e:
             return e.message
         except YoutubeParserError as e:
             return e.message

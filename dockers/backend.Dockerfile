@@ -9,6 +9,8 @@ RUN pip install --upgrade pip && \
     poetry config virtualenvs.create false && \
     poetry install --only main --no-root
 
+# Install Playwright dependencies
+RUN poetry run playwright install-deps firefox
 
 COPY .. .
 
