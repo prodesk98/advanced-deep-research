@@ -6,7 +6,7 @@ from streamlit.delta_generator import DeltaGenerator
 
 from schemas import RerankResponse
 
-_T = TypeVar("_T")
+T = TypeVar("T", bound=BaseMessage)
 
 
 class BaseLLM(ABC):
@@ -23,8 +23,9 @@ class BaseLLM(ABC):
             "Subclasses must implement the 'generate' method to produce text based on the provided prompt."
         )
 
+
     @abstractmethod
-    def flashcard(self, prompt: str, quantities: int = 5) -> list[_T]:
+    def flashcard(self, prompt: str, quantities: int = 5) -> list[T]:
         """
         Generate flashcards based on the provided prompt.
         :param prompt:
@@ -33,6 +34,32 @@ class BaseLLM(ABC):
         """
         raise NotImplementedError(
             "Subclasses must implement the 'flashcard' method to produce flashcards based on the provided prompt."
+        )
+
+
+    @abstractmethod
+    def generate_sub_queries(self, query: str) -> list[str]:
+        """
+        Generate sub-queries based on the provided query.
+        :param query:
+        :return:
+        """
+        raise NotImplementedError(
+            "Subclasses must implement the 'generate_sub_queries' method to produce sub-queries based on the provided query."
+        )
+
+
+    @abstractmethod
+    def reflection(self, query: str, sub_queries: list[str], chunks: list[str]) -> str:
+        """
+        Generate a reflection based on the provided query, sub-queries, and chunks.
+        :param query:
+        :param sub_queries:
+        :param chunks:
+        :return:
+        """
+        raise NotImplementedError(
+            "Subclasses must implement the 'reflection' method to produce a reflection based on the provided query, sub-queries, and chunks."
         )
 
 

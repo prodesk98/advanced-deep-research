@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List, Any, Optional
+from typing import List, Any, Optional, TypeVar
 from uuid import UUID
 
 from langchain.agents import AgentExecutor, create_tool_calling_agent
@@ -13,6 +13,7 @@ from langchain_core.prompts import (
     MessagesPlaceholder,
 )
 from langchain_openai import ChatOpenAI
+from pydantic import BaseModel
 from streamlit.delta_generator import DeltaGenerator
 
 from config import (
@@ -37,6 +38,9 @@ from tenacity import (
     stop_after_attempt,
     wait_random_exponential,
 )
+
+
+T = TypeVar("T", bound=BaseModel)
 
 
 class AgentCallbackHandler(BaseCallbackHandler):
@@ -97,8 +101,15 @@ class OpenAILLM(BaseLLM):
             max_tokens=OPENAI_MAX_TOKENS,
         )
 
+
     @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
     def generate(self, chat_history: list[BaseMessage], placeholder: Optional[DeltaGenerator] = None) -> str:
+        """
+        Generate a response based on the provided chat history.
+        :param chat_history:
+        :param placeholder:
+        :return:
+        """
         logger(
             " ".join(
                 [
@@ -165,6 +176,35 @@ class OpenAILLM(BaseLLM):
             return f"An error occurred: {e}"
 
 
+    def _generate_structured_output(self, template: str, prompt: str, schema: type[T], inputs: dict) -> T:
+        system_prompt = ChatPromptTemplate.from_messages(
+            messages=[
+                SystemMessagePromptTemplate(
+                    prompt=PromptTemplate(
+                        template=template,
+                        input_variables=[k for k in inputs.keys()],
+                    )
+                ),
+                HumanMessage(
+                    content=prompt,
+                ),
+            ]
+        )
+
+        structured_schema = self.structured_llm.with_structured_output(schema, method="json_schema")
+
+        chain = (
+            system_prompt |
+            structured_schema
+        )
+
+        try:
+            output: schema = chain.invoke(inputs)
+            return output
+        except Exception as e:
+            raise GenerativeError(str(e)) from e
+
+
     @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
     def flashcard(self, prompt: str, quantities: int = 5) -> List[FlashCardSchema]:
         """
@@ -176,39 +216,33 @@ class OpenAILLM(BaseLLM):
         template = (
             FLASHCARD_PROMPT.replace("{{natural_language}}", NATURAL_LANGUAGE)  # Replace natural language if have it.
         )
-        # Create a structured prompt for the flashcard generation
-        system_prompt = ChatPromptTemplate.from_messages(
-            messages=[
-                SystemMessagePromptTemplate(
-                    prompt=PromptTemplate(
-                        template=template,
-                        input_variables=[
-                            "quantities"
-                        ],
-                    )
-                ),
-                HumanMessage(
-                    content=prompt,
-                ),
-            ]
+
+        output = self._generate_structured_output(
+            template=template,
+            prompt=prompt,
+            schema=FlashCardSchemaRequest,
+            inputs={
+                "quantities": quantities,
+            },
         )
-        #
 
-        # Generate the flashcards using the structured prompt
-        structured_schema = self.structured_llm.with_structured_output(FlashCardSchemaRequest, method="json_schema")
-        #
+        return output.flashcards
 
-        # Create the chain to process the structured prompt
-        chain = (
-            system_prompt |
-            structured_schema
-        )
-        #
 
-        try:
-            # Execute the chain and return the flashcards
-            output: FlashCardSchemaRequest = chain.invoke({"quantities": quantities})
-            #
-            return output.flashcards
-        except Exception as e:
-            raise GenerativeError(str(e)) from e
+    def generate_sub_queries(self, query: str) -> list[str]:
+        """
+        Generate sub-queries based on the provided query.
+        :param query:
+        :return:
+        """
+
+
+    def reflection(self, query: str, sub_queries: list[str], chunks: list[str]) -> str:
+        """
+        Generate a reflection based on the provided query, sub-queries, and chunks.
+        :param query:
+        :param sub_queries:
+        :param chunks:
+        :return:
+        """
+
