@@ -23,8 +23,19 @@ from config import (
     OPENAI_TEMPERATURE, OPENAI_API_BASE, NATURAL_LANGUAGE,
 )
 from loggings import logger
-from prompt_engineering import SUMMARIZER_PROMPT, FLASHCARD_PROMPT
-from schemas import FlashCardSchema, FlashCardSchemaRequest
+from prompt_engineering import (
+    AGENT_PROMPT,
+    FLASHCARD_PROMPT,
+    SUB_QUERY_PROMPT,
+    REFLECT_PROMPT,
+    SUMMARIZER_PROMPT
+)
+from schemas import (
+    FlashCardSchema,
+    FlashCardSchemaRequest,
+    SubQueriesResultSchema,
+    ReflectionResultSchema
+)
 from exceptions import (
     GoogleSearchError, SemanticSearchError,
     ArxivSearchError, WebParserParserError,
@@ -86,14 +97,7 @@ class OpenAILLM(BaseLLM):
     def __init__(self, namespace: Optional[str] = None):
         self._namespace = namespace or "default"
         self._tools = Tools(self._namespace)
-        self.structured_llm = ChatOpenAI(
-            base_url=OPENAI_API_BASE,
-            api_key=OPENAI_API_KEY,
-            model=OPENAI_MODEL,
-            temperature=OPENAI_TEMPERATURE,
-            max_tokens=OPENAI_MAX_TOKENS,
-        )
-        self.agent_llm = ChatOpenAI(
+        self._chat_llm = ChatOpenAI(
             base_url=OPENAI_API_BASE,
             api_key=OPENAI_API_KEY,
             model=OPENAI_MODEL,
@@ -122,7 +126,7 @@ class OpenAILLM(BaseLLM):
         )
         # System template
         template = (
-            SUMMARIZER_PROMPT
+            AGENT_PROMPT
             .replace("{{current_time}}", datetime.now().strftime("%m-%d-%Y %H:%M:%S")) # Replace current time if have it.
             .replace("{{natural_language}}", NATURAL_LANGUAGE) # Replace natural language if have it.
         )
@@ -138,7 +142,7 @@ class OpenAILLM(BaseLLM):
         #
 
         # Create Agent Executor
-        agent = create_tool_calling_agent(self.agent_llm, self._tools.get(), prompt)
+        agent = create_tool_calling_agent(self._chat_llm, self._tools.get(), prompt)
         #
 
         # Create the agent executor
@@ -191,7 +195,7 @@ class OpenAILLM(BaseLLM):
             ]
         )
 
-        structured_schema = self.structured_llm.with_structured_output(schema, method="json_schema")
+        structured_schema = self._chat_llm.with_structured_output(schema, method="json_schema")
 
         chain = (
             system_prompt |
@@ -235,9 +239,21 @@ class OpenAILLM(BaseLLM):
         :param query:
         :return:
         """
+        template = SUB_QUERY_PROMPT
+
+        output = self._generate_structured_output(
+            template=template,
+            prompt=query,
+            schema=SubQueriesResultSchema,
+            inputs={
+                "original_query": query,
+            },
+        )
+
+        return output.queries
 
 
-    def reflection(self, query: str, sub_queries: list[str], chunks: list[str]) -> str:
+    def reflection(self, query: str, sub_queries: list[str], chunks: list[str]) -> list[str]:
         """
         Generate a reflection based on the provided query, sub-queries, and chunks.
         :param query:
@@ -245,4 +261,51 @@ class OpenAILLM(BaseLLM):
         :param chunks:
         :return:
         """
+        template = REFLECT_PROMPT
 
+        output = self._generate_structured_output(
+            template=template,
+            prompt=query,
+            schema=ReflectionResultSchema,
+            inputs={
+                "original_query": query,
+                "sub_queries": sub_queries,
+                "chunks": "\n".join(chunks),
+            },
+        )
+
+        return output.sub_queries
+
+
+    def summarize(self, query: str, chunks: list[str]) -> str:
+        template = SUMMARIZER_PROMPT
+
+        prompt_system = ChatPromptTemplate.from_messages(
+            messages=[
+                SystemMessagePromptTemplate(
+                    prompt=PromptTemplate(
+                        template=template,
+                        input_variables=[
+                            "query",
+                            "chunks"
+                        ],
+                    )
+                ),
+            ]
+        )
+
+        chain = (
+            prompt_system |
+            self._chat_llm
+        )
+
+        try:
+            result = chain.invoke(
+                {
+                    "original_query": query,
+                    "chunks": "\n".join(chunks),
+                }
+            )
+            return result.content
+        except Exception as e:
+            raise GenerativeError(str(e)) from e

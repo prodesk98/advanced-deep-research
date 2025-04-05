@@ -1,3 +1,4 @@
+from config import USE_CHAT_MEMORY
 from factory import ConversationFactory
 from schemas import Message
 from services import SemanticSearch
@@ -13,6 +14,8 @@ class ConversationsManager:
         return self._conversations_factory.all(limit)
 
     def add_message(self, message: Message) -> None:
+        if not USE_CHAT_MEMORY:
+            return
         self._conversations_factory.add(message)
 
     def favorite(self, summary: str) -> None:

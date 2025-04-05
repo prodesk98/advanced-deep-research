@@ -1,6 +1,6 @@
 
 
-SUMMARIZER_PROMPT = """You are an assistant specialized in summarizing content to enhance studying, memorization, and understanding.
+AGENT_PROMPT = """You are an assistant specialized in summarizing content to enhance studying, memorization, and understanding.
 Your task is to produce a clear, cohesive, and concise study-oriented summary based on the following guidelines:
 
 1. Identify:
@@ -55,6 +55,7 @@ Based on the following text, generate a single flashcard consisting of:
 > - Minimum quantity of **{quantities}** flashcards.
 >"""
 
+
 # Based: https://github.com/zilliztech/deep-searcher/blob/master/deepsearcher/agent/deep_search.py#L12
 SUB_QUERY_PROMPT = """You are an assistant specialized in creating sub-queries to enhance the understanding of a given text.
 If this is a very simple question and no decomposition is necessary, then keep the only one original question in the python code list.
@@ -69,18 +70,37 @@ Sub-Queries:
 - What is the history of deep learning?"""
 #
 
+
 # Based: https://github.com/zilliztech/deep-searcher/blob/master/deepsearcher/agent/deep_search.py#L42
 REFLECT_PROMPT = """"Determine whether additional search queries are needed based on the original query, previous sub queries, and all retrieved document chunks. 
 If further research is required, provide a list of up to 3 search queries. If no further research is required, return an empty list.
 
 If the original query is to write a report, then you prefer to generate some further queries, instead return an empty list.
 
-Original Query: {original_query}
+Original Query: 
+{original_query}
 
-Previous Sub Queries: {mini_questions}
+---
+
+Previous Sub Queries: 
+{sub_queries}
+
+---
 
 Related Chunks: 
-{mini_chunk_str}
+{chunks}"""
+#
 
-Respond exclusively in valid List of str format without any other text."""
+
+# Based: https://github.com/zilliztech/deep-searcher/blob/master/deepsearcher/agent/naive_rag.py#L10
+SUMMARIZER_PROMPT = """You are an assistant specialized in summarizing content.
+Summarize a specific and detailed answer or report based on the previous queries and the retrieved document chunks.
+
+Original Query:
+{original_query}
+
+---
+
+Related Chunks:
+{chunks}"""
 #

@@ -23,6 +23,17 @@ class FlashCardSchemaRequest(BaseModel):
 
 
 class SubQueriesResultSchema(BaseModel):
-    queries: list[str] = Field(default_factory=list, description="List of sub-queries generated from the original query.")
+    queries: list[str] = Field(
+        ...,
+        title="Sub-Queries",
+        description="List of sub-queries generated from the original query."
+    )
 
+
+class ReflectionResultSchema(BaseModel):
+    sub_queries: list[str] = Field(
+        default_factory=list,
+        title="Sub-Queries",
+        description="The sub-queries generated based on the original query.",
+    )
 

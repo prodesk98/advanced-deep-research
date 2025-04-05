@@ -14,6 +14,8 @@ from .environment import (
     MONGODB_DATABASE,
     QDRANT_DSN,
     QDRANT_COLLECTION,
+    USE_RERANKER,
+    USE_CHAT_MEMORY,
 )
 
 __all__ = [
@@ -32,4 +34,6 @@ __all__ = [
     "MONGODB_DATABASE",
     "QDRANT_DSN",
     "QDRANT_COLLECTION",
+    "USE_RERANKER",
+    "USE_CHAT_MEMORY",
 ]

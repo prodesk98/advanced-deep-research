@@ -45,3 +45,6 @@ QDRANT_COLLECTION: Optional[str] = environ.get("QDRANT_COLLECTION", PROJECT_NAME
 if QDRANT_DSN is None:
     raise ValueError("QDRANT_DSN not found in environment variables.")
 #
+
+USE_RERANKER = bool(environ.get("USE_RERANKER", "true") == "true")
+USE_CHAT_MEMORY = bool(environ.get("USE_CHAT_MEMORY", "true") == "true")

@@ -1,5 +1,6 @@
 from tenacity import retry, wait_random_exponential, stop_after_attempt
 
+from config import USE_RERANKER
 from schemas import RerankRequest, RerankedDocument
 from exceptions import (
     APIRequestError,
@@ -32,6 +33,8 @@ class Reranker(BaseReranker):
             raise InvalidRerankValue("Number of documents must be between 1 and 100.")
         if not isinstance(query, str):
             raise InvalidRerankValue("Query must be a string.")
+        if not USE_RERANKER:
+            return [RerankedDocument(document=doc, score=0) for doc in documents]
 
         try:
             response = self._client.request(

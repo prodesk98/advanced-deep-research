@@ -50,7 +50,7 @@ class BaseLLM(ABC):
 
 
     @abstractmethod
-    def reflection(self, query: str, sub_queries: list[str], chunks: list[str]) -> str:
+    def reflection(self, query: str, sub_queries: list[str], chunks: list[str]) -> list[str]:
         """
         Generate a reflection based on the provided query, sub-queries, and chunks.
         :param query:
@@ -60,6 +60,16 @@ class BaseLLM(ABC):
         """
         raise NotImplementedError(
             "Subclasses must implement the 'reflection' method to produce a reflection based on the provided query, sub-queries, and chunks."
+        )
+
+    @abstractmethod
+    def summarize(self, query: str, chunks: list[str]) -> str:
+        """
+        Generate a summary based on the provided text.
+        :return:
+        """
+        raise NotImplementedError(
+            "Subclasses must implement the 'summarize' method to produce a summary based on the provided text."
         )
 
 

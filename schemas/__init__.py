@@ -2,6 +2,7 @@ from .generative_schema import (
     FlashCardSchema,
     FlashCardSchemaRequest,
     SubQueriesResultSchema,
+    ReflectionResultSchema,
 )
 from .vectordb_schema import (
     UpsertSchema, MetadataSchema,

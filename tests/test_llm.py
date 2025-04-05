@@ -64,3 +64,53 @@ def test_flashcard():
     result = openai_llm.flashcard(prompt, quantities)
     assert isinstance(result, list), "Flashcard result should be a list"
     assert len(result) == quantities, f"Flashcard result should contain {quantities} items"
+
+
+def test_sub_queries():
+    from llm.openai_llm import OpenAILLM
+
+    openai_llm = OpenAILLM()
+
+    query = "Explain the concept of reinforcement learning."
+    result = openai_llm.generate_sub_queries(query)
+    assert isinstance(result, list), "Sub-queries result should be a list"
+    assert len(result) > 0, "Sub-queries result should not be empty"
+    assert all(isinstance(q, str) for q in result), "All sub-queries should be strings"
+
+
+def test_reflection():
+    from llm.openai_llm import OpenAILLM
+
+    openai_llm = OpenAILLM()
+
+    query = "Explain the concept of reinforcement learning."
+    sub_queries = [
+        "What is reinforcement learning?",
+        "How does reinforcement learning work?",
+        "What are the applications of reinforcement learning?"
+    ]
+    chunks = [
+        "Reinforcement learning is a type of machine learning where an agent learns to make decisions by taking actions in an environment to maximize cumulative reward.",
+        "In reinforcement learning, an agent interacts with an environment and learns from the consequences of its actions.",
+        "Reinforcement learning has applications in robotics, game playing, and autonomous vehicles."
+    ]
+    result = openai_llm.reflection(query, sub_queries, chunks)
+    assert isinstance(result, list), "Reflection result should be a list"
+    assert len(result) > 0, "Reflection result should not be empty"
+    assert all(isinstance(r, str) for r in result), "All reflection results should be strings"
+
+
+def test_summarize():
+    from llm.openai_llm import OpenAILLM
+
+    openai_llm = OpenAILLM()
+
+    query = "Summarize the key features of reinforcement learning."
+    chunks = [
+        "Reinforcement learning is a type of machine learning where an agent learns to make decisions by taking actions in an environment to maximize cumulative reward.",
+        "In reinforcement learning, an agent interacts with an environment and learns from the consequences of its actions.",
+        "Reinforcement learning has applications in robotics, game playing, and autonomous vehicles."
+    ]
+    result = openai_llm.summarize(query, chunks)
+    assert isinstance(result, str), "Summary result should be a string"
+    assert len(result) > 0, "Summary result should not be empty"
