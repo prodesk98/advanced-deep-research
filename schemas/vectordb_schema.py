@@ -47,3 +47,8 @@ class QueryResultSchema(BaseModel):
         title="Metadata",
         description="The metadata of the vector.",
     )
+
+
+class SearchResultSchema(BaseModel):
+    score: float
+    text: str

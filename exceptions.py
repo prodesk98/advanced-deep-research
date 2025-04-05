@@ -87,7 +87,7 @@ class InvalidRerankValue(ValueError):
         super().__init__(message)
 
 
-class LLMError(LLMException):
+class GenerativeError(LLMException):
     def __init__(self, message: str):
         super().__init__(message)
 

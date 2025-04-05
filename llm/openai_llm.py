@@ -26,7 +26,8 @@ from prompt_engineering import SUMMARIZER_PROMPT, FLASHCARD_PROMPT
 from schemas import FlashCardSchema, FlashCardSchemaRequest
 from exceptions import (
     GoogleSearchError, SemanticSearchError,
-    ArxivSearchError, SiteParserError, YoutubeParserError
+    ArxivSearchError, SiteParserError,
+    YoutubeParserError, GenerativeError
 )
 from .base import BaseLLM
 from .tools import Tools
@@ -97,7 +98,7 @@ class OpenAILLM(BaseLLM):
         )
 
     @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
-    def generate(self, chat_history: list[BaseMessage], placeholder: Optional[DeltaGenerator]) -> str:
+    def generate(self, chat_history: list[BaseMessage], placeholder: Optional[DeltaGenerator] = None) -> str:
         logger(
             " ".join(
                 [
@@ -138,7 +139,7 @@ class OpenAILLM(BaseLLM):
             early_stopping_method="force",
             handle_parsing_errors=True,
             return_intermediate_steps=True,
-            callbacks=[AgentCallbackHandler(placeholder)],
+            callbacks=[AgentCallbackHandler(placeholder)] if placeholder else None,
         )
         #
 
@@ -208,9 +209,6 @@ class OpenAILLM(BaseLLM):
             # Execute the chain and return the flashcards
             output: FlashCardSchemaRequest = chain.invoke({"quantities": quantities})
             #
-            assert len(output.flashcards) > 0, "No flashcards generated"
-            assert len(output.flashcards) == quantities, "Number of flashcards generated"
             return output.flashcards
         except Exception as e:
-            logger(f"Error generating flashcards: {e}", level="error")
-            return []
+            raise GenerativeError(str(e)) from e

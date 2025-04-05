@@ -40,7 +40,7 @@ class Reranker(BaseReranker):
             )
             result = response.reranked
             if len(result) == 0:
-                raise RerankError("No documents were reranked.")
+                return []
             # Filter out documents with score less than the threshold
             # 0.1 is parcial
             # 0.7 is relevant

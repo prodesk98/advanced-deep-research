@@ -51,5 +51,6 @@ Based on the following text, generate a single flashcard consisting of:
 > - Use simple and accessible language.
 > - If possible, paraphrase rather than directly quoting.
 > - Write both the question and answer in **{{natural_language}}**.
-> - Limit the {quantities} flashcards to a maximum of 200 words each.
+> - Maximum of 200 words each.
+> - Minimum quantity of **{quantities}** flashcards.
 >"""

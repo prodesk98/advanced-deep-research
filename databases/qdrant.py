@@ -14,8 +14,5 @@ class Qdrant(BaseQdrant):
     def query(self, vector: list[float], with_metadata: bool = True, limit: int = 10) -> list[QueryResultSchema]:
         return super().query(vector, with_metadata=with_metadata, limit=limit)
 
-    def delete(self, ids: list[int]) -> None:
-        super().delete(ids)
-
-    def delete_namespace(self, namespace: str = "default") -> None:
-        super().delete_namespace(namespace)
+    def delete(self, ids: Optional[list[int]] = None, key: Optional[str] = None, value: Optional[str] = None) -> None:
+        super().delete(ids, key, value)

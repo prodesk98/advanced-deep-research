@@ -108,26 +108,36 @@ class BaseQdrant(ABC):
             ).points
         ]
 
-    def delete(self, ids: list[int]) -> None:
-        self._client.delete(
-            collection_name=self._collection,
-            points_selector=PointsSelector(ids),
-        )
-
-    def delete_namespace(self, namespace: str = "default") -> None:
-        self._client.delete(
-            collection_name=self._collection,
-            points_selector=FilterSelector(
-                filter=Filter(
-                    must=[
-                        FieldCondition(
-                            key="namespace",
-                            match=MatchValue(value=namespace),
-                        )
-                    ],
-                )
-            ),
-        )
+    def delete(self, ids: Optional[list[int]] = None, key: Optional[str] = None, value: Optional[str] = None) -> None:
+        """
+        Delete points from the collection based on IDs or key-value pairs.
+        :param ids:
+        :param key:
+        :param value:
+        :return:
+        """
+        if ids is not None:
+            self._client.delete(
+                collection_name=self._collection,
+                points_selector=PointsSelector(ids),
+            )
+        elif (
+            key is not None and
+            value is not None
+        ):
+            self._client.delete(
+                collection_name=self._collection,
+                points_selector=FilterSelector(
+                    filter=Filter(
+                        must=[
+                            FieldCondition(
+                                key=key,
+                                match=MatchValue(value=value),
+                            )
+                        ],
+                    )
+                ),
+            )
 
     @property
     def collection(self) -> str:
