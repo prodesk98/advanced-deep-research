@@ -1,5 +1,5 @@
 import asyncio
-from typing import Optional
+from typing import Optional, Literal
 
 import torch
 from transformers import AutoModel, AutoModelForSequenceClassification, pipeline
@@ -8,7 +8,28 @@ from .env import RERANKER_MODEL, EMBEDDING_MODEL, SUMMARIZATION_MODEL
 from loggings import logger
 
 
-class Embedding:
+class Instance:
+    _instance = None
+
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+            cls._instance._init_singleton()
+        return cls._instance
+
+    def _init_singleton(self):
+        self.services = {
+            "embeddings": Embeddings(),
+            "reranker": Reranker(),
+            "summarization": Summarization(),
+        }
+
+    def get(self, name: Literal["embeddings", "reranker", "summarization"]):
+        return self.services.get(name)
+
+instance = Instance()
+
+class Embeddings:
     def __init__(self, model: Optional[str] = None) -> None:
         device = 'cuda' if torch.cuda.is_available() else 'cpu'
         logger(f"Loading embedding model on {device}...", "info")
@@ -18,7 +39,6 @@ class Embedding:
             model or EMBEDDING_MODEL,
             trust_remote_code=True,
         ).to(device)
-        self._model.eval()
 
     def embed(self, texts: list[str]) -> list[list[float]]:
         if not texts or not all(isinstance(t, str) and t.strip() for t in texts):
@@ -42,7 +62,6 @@ class Reranker:
             torch_dtype=torch.float16 if torch.cuda.is_available() else torch.float32,
             trust_remote_code=True,
         ).to(device)
-        self._model.eval()
 
     def rerank(self, query: str, documents: list[str]) -> tuple[list[str], list[float]]:
         if not query or not isinstance(query, str) or not query.strip():
@@ -71,7 +90,12 @@ class Reranker:
 
 class Summarization:
     def __init__(self, model: Optional[str] = None) -> None:
-        self._summarizer = pipeline("summarization", model=model or SUMMARIZATION_MODEL)
+        device = 'cuda' if torch.cuda.is_available() else 'cpu'
+        self._model = pipeline(
+            "summarization", model=model or SUMMARIZATION_MODEL,
+            device=device,
+            trust_remote_code=True
+        )
 
     def summarize(self, query: str, text: str) -> str:
         if not text or not isinstance(text, str) or not text.strip():
@@ -82,23 +106,18 @@ class Summarization:
             raise ValueError("Input text exceeds the maximum length of 4096 characters.")
 
         logger(f"Summarizing text of length {len(text)}.", "info")
-        summaries: list[dict] = self._summarizer(
+        summaries: list[dict] = self._model(
             f"**Query: {query}\n\n**{text}", max_length=150, min_length=30, do_sample=False)
         return summaries[0]['summary_text']
 
 
-_embedding = Embedding()
-_reranker = Reranker()
-_summarization = Summarization()
-
-
 async def embed_texts(texts: list[str]) -> list[list[float]]:
-    return await asyncio.to_thread(_embedding.embed, texts)
+    return await asyncio.to_thread(instance.get("embeddings").embed, texts)
 
 
 async def rerank_documents(query: str, documents: list[str]) -> tuple[list[str], list[float]]:
-    return await asyncio.to_thread(_reranker.rerank, query, documents)
+    return await asyncio.to_thread(instance.get("reranker").rerank, query, documents)
 
 
-async def summarize_text(query: str, text: str) -> str:
-    return await asyncio.to_thread(_summarization.summarize, query, text)
+async def summarization_text(query: str, text: str) -> str:
+    return await asyncio.to_thread(instance.get("summarization").summarize, query, text)

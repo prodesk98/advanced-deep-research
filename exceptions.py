@@ -99,6 +99,14 @@ class GenerativeError(LLMException):
         super().__init__(message)
 
 
+class SummarizationError(Exception):
+    """Custom exception for summarization errors."""
+    def __init__(self, message: str):
+        self.message = message
+        super().__init__(self.message)
+        logger(self.message, level="error")
+
+
 class APIRequestError(Exception):
     """Custom exception for API request failures."""
     def __init__(self, message: str, status_code: Optional[int] = None):

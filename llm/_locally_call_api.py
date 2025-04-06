@@ -8,7 +8,9 @@ from schemas import (
     RerankResponse,
     EmbeddingsResponse,
     EmbeddingsRequest,
-    RerankRequest
+    RerankRequest,
+    SummarizeRequest,
+    SummarizeResponse
 )
 from exceptions import APIRequestError
 from loggings import logger
@@ -22,9 +24,9 @@ class LocallyCallAPI:
 
     def request(
         self,
-        uri: Literal["embeddings", "rerank"],
-        payload: EmbeddingsRequest | RerankRequest,
-    ) -> Optional[RerankResponse | EmbeddingsResponse]:
+        uri: Literal["embeddings", "rerank", "summarize"],
+        payload: EmbeddingsRequest | RerankRequest | SummarizeRequest,
+    ) -> Optional[RerankResponse | EmbeddingsResponse | SummarizeResponse]:
         """
         Make a request to the local API.
         :param uri: The endpoint to call (embeddings or rerank).
@@ -35,6 +37,8 @@ class LocallyCallAPI:
             raise ValueError("Payload must be an instance of EmbeddingsRequest.")
         if uri == "rerank" and not isinstance(payload, RerankRequest):
             raise ValueError("Payload must be an instance of RerankRequest.")
+        if uri == "summarize" and not isinstance(payload, SummarizeRequest):
+            raise ValueError("Payload must be an instance of SummarizeRequest.")
 
         try:
             response = self._session.post(
@@ -49,7 +53,15 @@ class LocallyCallAPI:
                     status_code=response.status_code,
                 )
             data = response.json()
-            return EmbeddingsResponse(**data) if uri == "embeddings" else RerankResponse(**data)
+            match uri:
+                case "embeddings":
+                    return EmbeddingsResponse(**data)
+                case "rerank":
+                    return RerankResponse(**data)
+                case "summarize":
+                    return SummarizeResponse(**data)
+                case _:
+                    raise ValueError(f"Invalid URI: {uri}")
         except Timeout:
             logger(
                 "Request timed out. Please check your connection and try again.",

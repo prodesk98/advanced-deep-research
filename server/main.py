@@ -11,7 +11,7 @@ from server.schemas import (
 from server.core import (
     embed_texts,
     rerank_documents,
-    summarize_text
+    summarization_text
 )
 
 app = FastAPI(
@@ -80,7 +80,7 @@ async def summarize(
     :return:
     """
     try:
-        summary = await summarize_text(payload.query, payload.document)
+        summary = await summarization_text(payload.query, payload.document)
         return SummarizeResponse(
             summary=summary
         )

@@ -32,6 +32,20 @@ def test_embeddings():
     assert len(result[0]) > 0, "First element of embeddings result should not be empty"
 
 
+def test_summarization():
+    from llm.summarization import Summarization
+
+    summarization = Summarization()
+
+    query = "Reinforcement Learning."
+    document = """Reinforcement learning is a type of machine learning where an agent learns to make decisions by taking actions in an environment to maximize cumulative reward. 
+    In reinforcement learning, an agent interacts with an environment and learns from the consequences of its actions. 
+    Reinforcement learning has applications in robotics, game playing, and autonomous vehicles."""
+    result = summarization.summarize(query, document)
+    assert isinstance(result, str), "Summarization result should be a string"
+    assert len(result) > 0, "Summarization result should not be empty"
+
+
 def test_generative():
     from llm.openai_llm import OpenAILLM
 

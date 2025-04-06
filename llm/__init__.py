@@ -1,6 +1,7 @@
 class InstanceManager:
     from .embeddings import Embeddings
     from .reranker import Reranker
+    from .summarization import Summarization
 
     _instances = None
 
@@ -10,6 +11,7 @@ class InstanceManager:
             cls._instances = {
                 "embeddings": cls.Embeddings(),
                 "reranker": cls.Reranker(),
+                "summarization": cls.Summarization(),
             }
         return cls._instances
 
@@ -30,4 +32,13 @@ def get_embeddings():
     return InstanceManager.get_instances()["embeddings"]
 
 
-__all__ = ["get_reranker", "get_embeddings"]
+def get_summarization():
+    """
+    Get the summarization instance.
+    :return: "Summarization"
+    :raises SummarizationError: If summarization initialization fails.
+    """
+    return InstanceManager.get_instances()["summarization"]
+
+
+__all__ = ["get_reranker", "get_embeddings", "get_summarization"]
