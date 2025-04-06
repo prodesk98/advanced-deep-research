@@ -2,7 +2,10 @@ import asyncio
 from typing import Optional, Literal
 
 import torch
-from transformers import AutoModel, AutoModelForSequenceClassification, pipeline, AutoTokenizer
+from transformers import (
+    AutoModel, AutoModelForSequenceClassification,
+    AutoTokenizer, AutoModelForSeq2SeqLM
+)
 
 from .env import RERANKER_MODEL, EMBEDDING_MODEL, SUMMARIZATION_MODEL
 from loggings import logger
@@ -94,12 +97,7 @@ class Summarization:
     def __init__(self, model_name: Optional[str] = None) -> None:
         device = 'cuda' if torch.cuda.is_available() else 'cpu'
         self._model_name = model_name or SUMMARIZATION_MODEL
-        self._model = pipeline(
-            "summarization",
-            model=self._model_name,
-            device=device,
-            trust_remote_code=True
-        )
+        self._model = AutoModelForSeq2SeqLM.from_pretrained(self._model_name).to(device)
         self._tokenizer = AutoTokenizer.from_pretrained(self._model_name)
 
     def summarize(self, query: str, text: str) -> str:
@@ -112,19 +110,35 @@ class Summarization:
         logger(f"Summarizing text of length {len(full_text)}.", "info")
 
         max_input_length = 1024
-        tokenized_input = self._tokenizer(
+        stride = 200
+        tokenized = self._tokenizer(
             full_text,
-            truncation=True,
             max_length=max_input_length,
+            stride=stride,
+            truncation=True,
+            return_overflowing_tokens=True,
             return_tensors="pt"
         )
-        truncated_text = self._tokenizer.decode(
-            tokenized_input["input_ids"][0],
-            skip_special_tokens=True
-        )
 
-        summaries: list[dict] = self._model(truncated_text, max_length=150, min_length=30, do_sample=False)
-        return summaries[0]['summary_text']
+        input_ids_chunks = tokenized["input_ids"]
+        attention_mask_chunks = tokenized["attention_mask"]
+
+        summary_text = ""
+
+        for i in range(len(input_ids_chunks)):
+            logger(f"Summarizing chunk {i + 1}/{len(input_ids_chunks)}", "info")
+
+            summary_ids = self._model.generate(
+                input_ids=input_ids_chunks[i].unsqueeze(0).to(self._model.device),
+                attention_mask=attention_mask_chunks[i].unsqueeze(0).to(self._model.device),
+                max_length=150,
+                min_length=30,
+                do_sample=False,
+            )
+
+            summary_text += self._tokenizer.decode(summary_ids[0], skip_special_tokens=True) + "\n"
+
+        return summary_text
 
 
 # Singleton instance of the Instance class
