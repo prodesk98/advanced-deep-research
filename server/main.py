@@ -1,16 +1,17 @@
 from fastapi import FastAPI, HTTPException
-from tenacity import RetryError
-
 from server.schemas import (
     EmbeddingsRequest,
     RerankRequest,
     EmbeddingsResponse,
     RerankResponse,
-    RerankedDocument
+    RerankedDocument,
+    SummarizeRequest,
+    SummarizeResponse,
 )
 from server.core import (
     embed_texts,
-    rerank_documents
+    rerank_documents,
+    summarize_text
 )
 
 app = FastAPI(
@@ -24,15 +25,15 @@ app = FastAPI(
 async def embeddings(
     payload: EmbeddingsRequest,
 ) -> "EmbeddingsResponse":
+    """
+    Generate embeddings for the provided texts.
+    :param payload:
+    :return:
+    """
     try:
         embeddings_result = await embed_texts(payload.texts)
         return EmbeddingsResponse(
             embeddings=embeddings_result
-        )
-    except RetryError as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Retry error during embedding: {str(e)}"
         )
     except Exception as e:
         raise HTTPException(
@@ -45,6 +46,11 @@ async def embeddings(
 async def rerank(
     payload: RerankRequest,
 ) -> "RerankResponse":
+    """
+    Rerank the provided documents based on the query.
+    :param payload:
+    :return:
+    """
     try:
         rerank_result = await rerank_documents(payload.query, payload.documents)
         documents, scores = rerank_result
@@ -57,14 +63,29 @@ async def rerank(
                 for doc, score in zip(documents, scores)
             ]
         )
-    except RetryError as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Retry error during reranking: {str(e)}"
-        )
     except Exception as e:
         raise HTTPException(
             status_code=500,
             detail=f"Error during reranking: {str(e)}"
         )
 
+@app.post("/summarize", response_model=SummarizeResponse)
+async def summarize(
+    payload: SummarizeRequest
+):
+    """
+    Summarize the provided document based on the query.
+    Contents English recommended
+    :param payload:
+    :return:
+    """
+    try:
+        summary = await summarize_text(payload.query, payload.document)
+        return SummarizeResponse(
+            summary=summary
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error during summarization: {str(e)}"
+        )

@@ -1,3 +1,5 @@
+from typing import Optional
+
 from pydantic import BaseModel
 
 
@@ -7,7 +9,7 @@ class RerankRequest(BaseModel):
 
 class RerankedDocument(BaseModel):
     document: str
-    score: float
+    score: Optional[float] = None
 
 
 class RerankResponse(BaseModel):

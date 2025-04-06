@@ -25,7 +25,12 @@ class DeepSearch(ABC):
         self._chunks: list[str] = []
 
     @abstractmethod
-    def run(self) -> str:
+    def run(self, query: str) -> str:
+        """
+        Run the deep search algorithm.
+        :param query:
+        :return:
+        """
         raise NotImplementedError(
             "The run method must be implemented in subclasses."
         )

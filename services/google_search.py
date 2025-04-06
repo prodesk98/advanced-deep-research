@@ -51,6 +51,8 @@ class GoogleSearch(BaseSearchService):
 
             if parser:
                 for result in results:
+                    if "google.com" in result.url:
+                        continue
                     try:
                         result.content = WebParser().get_markdown(result.url)
                     except WebParserParserError:
@@ -59,7 +61,7 @@ class GoogleSearch(BaseSearchService):
             reranked_results = self._reranker.rerank(
                 query, [
                     f"**{result.title}**\n---\n{result.description} {result.content}\n---\nsource: {result.url}\n"
-                    for result in results
+                    for result in results if "google.com" in result.url
                 ]
             )
 

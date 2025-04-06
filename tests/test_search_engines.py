@@ -2,13 +2,23 @@
 def test_google_search():
     from services import GoogleSearch
     google_search = GoogleSearch()
-    query = "Python programming"
+    query = "Reinforcement Learning"
     limit = 5
     result = google_search.search(query, limit)
     assert isinstance(result, str), "Expected result to be a string"
     assert len(result) > 0, "Expected result to have length greater than 0"
-    assert "Python" in result, "Expected result to contain 'Python'"
-    assert "programming" in result, "Expected result to contain 'programming'"
+    assert "Reinforcement" in result, "Expected result to contain 'Reinforcement'"
+
+
+def test_youtube_search():
+    from services import YoutubeSearch
+    youtube_search = YoutubeSearch()
+    query = "Reinforcement Learning"
+    limit = 5
+    result = youtube_search.search(query, limit)
+    assert isinstance(result, list), "Expected result to be a list"
+    assert len(result) > 0, "Expected result to have length greater than 0"
+    assert all(isinstance(item.content, str) for item in result), "Expected all items in result to be dictionaries"
 
 
 def test_arxiv_search():

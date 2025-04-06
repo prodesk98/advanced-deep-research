@@ -15,7 +15,7 @@ def test_rerank():
     ]
     reranked_results = reranker.rerank(query, documents)
     assert isinstance(reranked_results, list), "Reranked results should be a list"
-    assert len(reranked_results) > 0, "Reranked results should not be empty"
+    assert len(reranked_results) > 1, "Reranked results should not be empty"
     assert reranked_results[0].score >= reranked_results[1].score, "First result should have a higher score than the second result"
 
 
@@ -35,12 +35,12 @@ def test_embeddings():
 def test_generative():
     from llm.openai_llm import OpenAILLM
 
-    openai_llm = OpenAILLM()
+    llm = OpenAILLM()
 
     history = [
         HumanMessage("What is the capital of France?")
     ]
-    result = openai_llm.generate(history)
+    result = llm.generate(history)
     assert isinstance(result, str), "Generated result should be a string"
     assert len(result) > 0, "Generated result should not be empty"
     assert "Paris" in result, "Generated result should contain the answer to the question"
@@ -49,7 +49,7 @@ def test_generative():
 def test_flashcard():
     from llm.openai_llm import OpenAILLM
 
-    openai_llm = OpenAILLM()
+    llm = OpenAILLM()
 
     prompt = """
         Picture this. Your artificial intelligence model
@@ -61,7 +61,7 @@ def test_flashcard():
         ensuring your models perform consistently and reliably in any environment.
     """
     quantities = 3
-    result = openai_llm.flashcard(prompt, quantities)
+    result = llm.flashcard(prompt, quantities)
     assert isinstance(result, list), "Flashcard result should be a list"
     assert len(result) == quantities, f"Flashcard result should contain {quantities} items"
 
@@ -69,10 +69,10 @@ def test_flashcard():
 def test_sub_queries():
     from llm.openai_llm import OpenAILLM
 
-    openai_llm = OpenAILLM()
+    llm = OpenAILLM()
 
     query = "Explain the concept of reinforcement learning."
-    result = openai_llm.generate_sub_queries(query)
+    result = llm.generate_sub_queries(query)
     assert isinstance(result, list), "Sub-queries result should be a list"
     assert len(result) > 0, "Sub-queries result should not be empty"
     assert all(isinstance(q, str) for q in result), "All sub-queries should be strings"
@@ -81,7 +81,7 @@ def test_sub_queries():
 def test_reflection():
     from llm.openai_llm import OpenAILLM
 
-    openai_llm = OpenAILLM()
+    llm = OpenAILLM()
 
     query = "Explain the concept of reinforcement learning."
     sub_queries = [
@@ -94,7 +94,7 @@ def test_reflection():
         "In reinforcement learning, an agent interacts with an environment and learns from the consequences of its actions.",
         "Reinforcement learning has applications in robotics, game playing, and autonomous vehicles."
     ]
-    result = openai_llm.reflection(query, sub_queries, chunks)
+    result = llm.reflection(query, sub_queries, chunks)
     assert isinstance(result, list), "Reflection result should be a list"
     assert len(result) > 0, "Reflection result should not be empty"
     assert all(isinstance(r, str) for r in result), "All reflection results should be strings"
@@ -103,7 +103,7 @@ def test_reflection():
 def test_summarize():
     from llm.openai_llm import OpenAILLM
 
-    openai_llm = OpenAILLM()
+    llm = OpenAILLM()
 
     query = "Summarize the key features of reinforcement learning."
     chunks = [
@@ -111,6 +111,6 @@ def test_summarize():
         "In reinforcement learning, an agent interacts with an environment and learns from the consequences of its actions.",
         "Reinforcement learning has applications in robotics, game playing, and autonomous vehicles."
     ]
-    result = openai_llm.summarize(query, chunks)
+    result = llm.summarize(query, chunks)
     assert isinstance(result, str), "Summary result should be a string"
     assert len(result) > 0, "Summary result should not be empty"

@@ -1,26 +1,25 @@
 import asyncio
+from typing import Optional
 
 import torch
-from tenacity import wait_random_exponential, retry, stop_after_attempt
-from transformers import AutoModel, AutoModelForSequenceClassification
+from transformers import AutoModel, AutoModelForSequenceClassification, pipeline
 
-from .env import RERANKER_MODEL, EMBEDDING_MODEL
+from .env import RERANKER_MODEL, EMBEDDING_MODEL, SUMMARIZATION_MODEL
 from loggings import logger
 
 
 class Embedding:
-    def __init__(self) -> None:
+    def __init__(self, model: Optional[str] = None) -> None:
         device = 'cuda' if torch.cuda.is_available() else 'cpu'
         logger(f"Loading embedding model on {device}...", "info")
 
         self.device = device
         self._model = AutoModel.from_pretrained(
-            EMBEDDING_MODEL,
+            model or EMBEDDING_MODEL,
             trust_remote_code=True,
         ).to(device)
         self._model.eval()
 
-    @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
     def embed(self, texts: list[str]) -> list[list[float]]:
         if not texts or not all(isinstance(t, str) and t.strip() for t in texts):
             raise ValueError("Input texts must be a non-empty list of non-empty strings.")
@@ -33,19 +32,18 @@ class Embedding:
 
 
 class Reranker:
-    def __init__(self) -> None:
+    def __init__(self, model: Optional[str] = None) -> None:
         device = 'cuda' if torch.cuda.is_available() else 'cpu'
         logger(f"Loading reranker model on {device}...", "info")
 
         self.device = device
         self._model = AutoModelForSequenceClassification.from_pretrained(
-            RERANKER_MODEL,
+            model or RERANKER_MODEL,
             torch_dtype=torch.float16 if torch.cuda.is_available() else torch.float32,
             trust_remote_code=True,
         ).to(device)
         self._model.eval()
 
-    @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
     def rerank(self, query: str, documents: list[str]) -> tuple[list[str], list[float]]:
         if not query or not isinstance(query, str) or not query.strip():
             raise ValueError("Query must be a non-empty string.")
@@ -71,8 +69,27 @@ class Reranker:
         return list(reranked_documents), list(rerank_scores)
 
 
+class Summarization:
+    def __init__(self, model: Optional[str] = None) -> None:
+        self._summarizer = pipeline("summarization", model=model or SUMMARIZATION_MODEL)
+
+    def summarize(self, query: str, text: str) -> str:
+        if not text or not isinstance(text, str) or not text.strip():
+            raise ValueError("Input text must be a non-empty string.")
+        if not query or not isinstance(query, str) or not query.strip():
+            raise ValueError("Query must be a non-empty string.")
+        if len(text) > 4096:
+            raise ValueError("Input text exceeds the maximum length of 4096 characters.")
+
+        logger(f"Summarizing text of length {len(text)}.", "info")
+        summaries: list[dict] = self._summarizer(
+            f"**Query: {query}\n\n**{text}", max_length=150, min_length=30, do_sample=False)
+        return summaries[0]['summary_text']
+
+
 _embedding = Embedding()
 _reranker = Reranker()
+_summarization = Summarization()
 
 
 async def embed_texts(texts: list[str]) -> list[list[float]]:
@@ -81,3 +98,7 @@ async def embed_texts(texts: list[str]) -> list[list[float]]:
 
 async def rerank_documents(query: str, documents: list[str]) -> tuple[list[str], list[float]]:
     return await asyncio.to_thread(_reranker.rerank, query, documents)
+
+
+async def summarize_text(query: str, text: str) -> str:
+    return await asyncio.to_thread(_summarization.summarize, query, text)

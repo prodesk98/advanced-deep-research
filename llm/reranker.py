@@ -15,7 +15,7 @@ class Reranker(BaseReranker):
     """
     Locally reranker class.
     """
-    THRESHOLD = 0.1
+    THRESHOLD = 0.51
 
     def __init__(self):
         self._client = LocallyCallAPI()
@@ -34,7 +34,7 @@ class Reranker(BaseReranker):
         if not isinstance(query, str):
             raise InvalidRerankValue("Query must be a string.")
         if not USE_RERANKER:
-            return [RerankedDocument(document=doc, score=0) for doc in documents]
+            return [RerankedDocument(document=doc, score=None) for doc in documents]
 
         try:
             response = self._client.request(
@@ -45,8 +45,6 @@ class Reranker(BaseReranker):
             if len(result) == 0:
                 return []
             # Filter out documents with score less than the threshold
-            # 0.1 is parcial
-            # 0.7 is relevant
             return [
                 RerankedDocument(
                     document=document.document,
@@ -60,4 +58,4 @@ class Reranker(BaseReranker):
             raise RerankError(
                 f"Failed to get reranked documents: {e}" +
                 f"Status code: {e.status_code}" if e.status_code else "",
-            )
+            ) from e

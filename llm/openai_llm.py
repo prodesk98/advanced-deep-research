@@ -206,7 +206,9 @@ class OpenAILLM(BaseLLM):
             output: schema = chain.invoke(inputs)
             return output
         except Exception as e:
-            raise GenerativeError(str(e)) from e
+            raise GenerativeError(
+                f"Failed to generate structured output: {e}"
+            ) from e
 
 
     @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
@@ -308,4 +310,6 @@ class OpenAILLM(BaseLLM):
             )
             return result.content
         except Exception as e:
-            raise GenerativeError(str(e)) from e
+            raise GenerativeError(
+                f"Failed to generate summary: {e}"
+            ) from e

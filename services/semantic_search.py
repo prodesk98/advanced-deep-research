@@ -49,7 +49,7 @@ class SemanticSearch(BaseSearchService):
             reranked_results = self._reranker.rerank(query, [result.text for result in results])
             return [
                 SearchResultSchema(
-                    score=ranked.score,
+                    score=ranked.score or 0,
                     text=ranked.document,
                 )
                 for ranked in reranked_results

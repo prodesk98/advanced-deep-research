@@ -12,7 +12,7 @@ class ArxivSearch(BaseSearchService):
         self._client = arxiv.Client()
         self._reranker = reranker or get_reranker()
 
-    def search(self, query: str, limit: int = 3, parser: bool = False) -> Optional[str]:
+    def search(self, query: str, limit: int = 3, parser: bool = False) -> str:
         """
         Search for papers on arXiv based on a query.
         :param query: str

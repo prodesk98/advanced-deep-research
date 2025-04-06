@@ -27,8 +27,8 @@ class YoutubeParser:
             # Combine the transcript into a single string
             transcript_text = " ".join(
                 [
-                    f"{item.start} - {item.start + item.duration}: {item.text}"
-                    for item in transcript
+                    item.text
+                    for item in transcript if item.duration
                 ]
             )
 

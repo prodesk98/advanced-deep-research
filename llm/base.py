@@ -101,3 +101,19 @@ class BaseReranker(ABC):
         raise NotImplementedError(
             "Subclasses must implement the 'rerank' method to reorder documents based on the provided query."
         )
+
+
+class BaseSummarization(ABC):
+    """
+    Base class for all summarizers.
+    """
+
+    @abstractmethod
+    def summarize(self, query: str, document: str) -> str:
+        """
+        Summarize the provided document based on the query.
+        """
+        raise NotImplementedError(
+            "Subclasses must implement the 'summarize' method to produce a summary based on the provided documents."
+        )
+

@@ -32,7 +32,7 @@ if "messages" not in st.session_state:
 chatId = st.session_state.chat_id or "default"
 
 # Initialize the OpenAI LLM client
-client = OpenAILLM(chatId)
+llm = OpenAILLM(chatId)
 #
 
 # Conversation Management
@@ -91,7 +91,7 @@ if prompt:
         with st.spinner("Agentes gerando resumo..."):
             # Placeholder for feedback
             feedback_placeholder = st.empty()
-            agent_output = client.generate(
+            agent_output = llm.generate(
                 [
                     HumanMessage(content=m['content'])
                     if m['role'] == "user"
@@ -135,7 +135,7 @@ if st.session_state.summary is not None and len(st.session_state.summary) >= 900
     if st.button("Criar Flashcards"):
         with st.spinner(f"Gerando {quantities} flashcards..."):
             try:
-                flashcards = client.flashcard(st.session_state.summary, quantities)
+                flashcards = llm.flashcard(st.session_state.summary, quantities)
 
                 if isinstance(flashcards, list) and len(flashcards) > 0:
                     st.session_state.flashcards = flashcards

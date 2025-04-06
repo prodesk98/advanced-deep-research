@@ -9,6 +9,14 @@ class GoogleSearchError(Exception):
         super().__init__(self.message)
 
 
+class YoutubeSearchError(Exception):
+    """Custom exception for YouTube search errors."""
+    def __init__(self, message: str):
+        self.message = message
+        super().__init__(self.message)
+        logger(self.message, level="error")
+
+
 class SemanticSearchError(Exception):
     def __init__(self, message: str):
         self.message = message
