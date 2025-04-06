@@ -1,16 +1,18 @@
 from typing import Optional
-from llm import get_reranker
+from llm import get_reranker, get_summarization
 from exceptions import ArxivSearchError
 from llm.reranker import Reranker
+from llm.summarization import Summarization
 from .base import BaseSearchService
 
 import arxiv
 
 
 class ArxivSearch(BaseSearchService):
-    def __init__(self, reranker: Optional[Reranker] = None):
+    def __init__(self, reranker: Optional[Reranker] = None, summarization: Optional[Summarization] = None) -> None:
         self._client = arxiv.Client()
         self._reranker = reranker or get_reranker()
+        self._summarization = summarization or get_summarization()
 
     def search(self, query: str, limit: int = 3, parser: bool = False) -> str:
         """
@@ -50,6 +52,6 @@ class ArxivSearch(BaseSearchService):
                     for result in reranked_results
                 ]
             )
-            return formatted_results
+            return self._summarization.summarize(query, formatted_results)
         except Exception as e:
             raise ArxivSearchError(f"Failed to fetch papers from arXiv: {e}")

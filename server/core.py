@@ -2,7 +2,7 @@ import asyncio
 from typing import Optional, Literal
 
 import torch
-from transformers import AutoModel, AutoModelForSequenceClassification, pipeline
+from transformers import AutoModel, AutoModelForSequenceClassification, pipeline, AutoTokenizer
 
 from .env import RERANKER_MODEL, EMBEDDING_MODEL, SUMMARIZATION_MODEL
 from loggings import logger
@@ -27,18 +27,19 @@ class Instance:
     def get(self, name: Literal["embeddings", "reranker", "summarization"]):
         return self.services.get(name)
 
-instance = Instance()
 
 class Embeddings:
-    def __init__(self, model: Optional[str] = None) -> None:
+    def __init__(self, model_name: Optional[str] = None) -> None:
         device = 'cuda' if torch.cuda.is_available() else 'cpu'
+        self._model_name = model_name or EMBEDDING_MODEL
         logger(f"Loading embedding model on {device}...", "info")
 
         self.device = device
         self._model = AutoModel.from_pretrained(
-            model or EMBEDDING_MODEL,
+            self._model_name,
             trust_remote_code=True,
         ).to(device)
+        self._tokenizer = AutoTokenizer.from_pretrained(self._model_name)
 
     def embed(self, texts: list[str]) -> list[list[float]]:
         if not texts or not all(isinstance(t, str) and t.strip() for t in texts):
@@ -52,13 +53,14 @@ class Embeddings:
 
 
 class Reranker:
-    def __init__(self, model: Optional[str] = None) -> None:
+    def __init__(self, model_name: Optional[str] = None) -> None:
         device = 'cuda' if torch.cuda.is_available() else 'cpu'
+        self._model_name = model_name or RERANKER_MODEL
         logger(f"Loading reranker model on {device}...", "info")
 
         self.device = device
         self._model = AutoModelForSequenceClassification.from_pretrained(
-            model or RERANKER_MODEL,
+            self._model_name,
             torch_dtype=torch.float16 if torch.cuda.is_available() else torch.float32,
             trust_remote_code=True,
         ).to(device)
@@ -89,26 +91,45 @@ class Reranker:
 
 
 class Summarization:
-    def __init__(self, model: Optional[str] = None) -> None:
+    def __init__(self, model_name: Optional[str] = None) -> None:
         device = 'cuda' if torch.cuda.is_available() else 'cpu'
+        self._model_name = model_name or SUMMARIZATION_MODEL
         self._model = pipeline(
-            "summarization", model=model or SUMMARIZATION_MODEL,
+            "summarization",
+            model=self._model_name,
             device=device,
             trust_remote_code=True
         )
+        self._tokenizer = AutoTokenizer.from_pretrained(self._model_name)
 
     def summarize(self, query: str, text: str) -> str:
         if not text or not isinstance(text, str) or not text.strip():
             raise ValueError("Input text must be a non-empty string.")
         if not query or not isinstance(query, str) or not query.strip():
             raise ValueError("Query must be a non-empty string.")
-        if len(text) > 4096:
-            raise ValueError("Input text exceeds the maximum length of 4096 characters.")
 
-        logger(f"Summarizing text of length {len(text)}.", "info")
-        summaries: list[dict] = self._model(
-            f"**Query: {query}\n\n**{text}", max_length=150, min_length=30, do_sample=False)
+        full_text = f"**Query: {query}\n\n**{text}"
+        logger(f"Summarizing text of length {len(full_text)}.", "info")
+
+        max_input_length = 1024
+        tokenized_input = self._tokenizer(
+            full_text,
+            truncation=True,
+            max_length=max_input_length,
+            return_tensors="pt"
+        )
+        truncated_text = self._tokenizer.decode(
+            tokenized_input["input_ids"][0],
+            skip_special_tokens=True
+        )
+
+        summaries: list[dict] = self._model(truncated_text, max_length=150, min_length=30, do_sample=False)
         return summaries[0]['summary_text']
+
+
+# Singleton instance of the Instance class
+instance = Instance()
+#
 
 
 async def embed_texts(texts: list[str]) -> list[list[float]]:

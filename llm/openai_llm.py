@@ -105,7 +105,6 @@ class OpenAILLM(BaseLLM):
             max_tokens=OPENAI_MAX_TOKENS,
         )
 
-
     @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
     def generate(self, chat_history: list[BaseMessage], placeholder: Optional[DeltaGenerator] = None) -> str:
         """
@@ -179,7 +178,6 @@ class OpenAILLM(BaseLLM):
         except Exception as e:
             return f"An error occurred: {e}"
 
-
     def _generate_structured_output(self, template: str, prompt: str, schema: type[T], inputs: dict) -> T:
         system_prompt = ChatPromptTemplate.from_messages(
             messages=[
@@ -210,7 +208,6 @@ class OpenAILLM(BaseLLM):
                 f"Failed to generate structured output: {e}"
             ) from e
 
-
     @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
     def flashcard(self, prompt: str, quantities: int = 5) -> List[FlashCardSchema]:
         """
@@ -234,7 +231,7 @@ class OpenAILLM(BaseLLM):
 
         return output.flashcards
 
-
+    @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
     def generate_sub_queries(self, query: str) -> list[str]:
         """
         Generate sub-queries based on the provided query.
@@ -254,7 +251,7 @@ class OpenAILLM(BaseLLM):
 
         return output.queries
 
-
+    @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
     def reflection(self, query: str, sub_queries: list[str], chunks: list[str]) -> list[str]:
         """
         Generate a reflection based on the provided query, sub-queries, and chunks.
@@ -278,7 +275,7 @@ class OpenAILLM(BaseLLM):
 
         return output.sub_queries
 
-
+    @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
     def summarize(self, query: str, chunks: list[str]) -> str:
         template = SUMMARIZER_PROMPT
 

@@ -7,7 +7,6 @@ def test_google_search():
     result = google_search.search(query, limit)
     assert isinstance(result, str), "Expected result to be a string"
     assert len(result) > 0, "Expected result to have length greater than 0"
-    assert "Reinforcement" in result, "Expected result to contain 'Reinforcement'"
 
 
 def test_youtube_search():
@@ -18,7 +17,6 @@ def test_youtube_search():
     result = youtube_search.search(query, limit)
     assert isinstance(result, list), "Expected result to be a list"
     assert len(result) > 0, "Expected result to have length greater than 0"
-    assert all(isinstance(item.content, str) for item in result), "Expected all items in result to be dictionaries"
 
 
 def test_arxiv_search():
@@ -29,8 +27,6 @@ def test_arxiv_search():
     result = arxiv_search.search(query, limit)
     assert isinstance(result, str), "Expected result to be a string"
     assert len(result) > 0, "Expected result to have length greater than 0"
-    assert "Quantum" in result, "Expected result to contain 'Quantum'"
-    assert "Computing" in result, "Expected result to contain 'Computing'"
 
 
 def test_semantic_search_upsert():

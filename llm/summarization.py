@@ -1,9 +1,8 @@
-from typing import Optional
-
 import tiktoken
 from langchain_text_splitters import CharacterTextSplitter
 
 from exceptions import SummarizationError, APIRequestError
+from loggings import logger
 from schemas import SummarizeRequest
 from .base import BaseSummarization
 from ._locally_call_api import LocallyCallAPI
@@ -12,16 +11,14 @@ from ._locally_call_api import LocallyCallAPI
 class Summarization(BaseSummarization):
     def __init__(self):
         self._client = LocallyCallAPI()
-        self._chunks: list[str] = []
         self._tokenizer = tiktoken.get_encoding("cl100k_base")
         self._splitter = CharacterTextSplitter.from_tiktoken_encoder(
-            encoding_name="cl100k_base", chunk_size=1000, chunk_overlap=100
+            encoding_name="cl100k_base",
+            chunk_size=1024,
+            chunk_overlap=0,
         )
 
     def _split_text(self, document: str) -> list[str]:
-        if self._calc_tokens(document) < 1000:
-            # If the document is less than 1000 tokens, return it as is
-            return [document]
         return self._splitter.split_text(document)
 
     def _calc_tokens(self, document: str) -> int:
@@ -39,6 +36,9 @@ class Summarization(BaseSummarization):
         :param doc:
         :return:
         """
+        if self._calc_tokens(doc) > 1024:
+            raise SummarizationError("Document exceeds the maximum token limit of 1024.")
+
         return self._client.request(
             "summarize",
             SummarizeRequest(
@@ -60,17 +60,18 @@ class Summarization(BaseSummarization):
             raise SummarizationError("Document must be a string.")
 
         documents = self._split_text(document)
-
-        if len(documents) == 0:
-            raise SummarizationError("No documents provided for summarization.")
+        chunks: list[str] = []
 
         for doc in documents:
             try:
-                self._chunks.append(self._perform(query, doc))
+                chunks.append(self._perform(query, doc))
+            except SummarizationError as e:
+                logger(e)
             except APIRequestError as e:
+                logger(e)
+            except Exception as e:
                 raise SummarizationError(
-                    f"Failed to get summary: {e}" +
-                    f"Status code: {e.status_code}" if e.status_code else "",
-                ) from e
+                    f"An error occurred during summarization: {str(e)}"
+                )
 
-        return "\n".join(self._chunks)
+        return "\n".join(chunks)

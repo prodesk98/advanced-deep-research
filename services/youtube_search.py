@@ -3,6 +3,8 @@ from typing import Optional
 from pydantic import BaseModel
 
 from exceptions import YoutubeSearchError
+from llm import get_summarization
+from llm.summarization import Summarization
 from loggings import logger
 from utils import YoutubeParser
 from .base import BaseSearchService
@@ -15,8 +17,9 @@ class SearchResult(BaseModel):
 
 
 class YoutubeSearch(BaseSearchService):
-    def __init__(self):
+    def __init__(self, summarization: Optional[Summarization] = None):
         self._youtube_parser = YoutubeParser()
+        self._summarization = summarization or get_summarization()
 
     def search(self, query: str, limit: int = 5, parser: bool = True) -> list[SearchResult]:
         """
@@ -34,7 +37,7 @@ class YoutubeSearch(BaseSearchService):
                     data = {"video_id": result["id"]}
                     try:
                         contents = self._youtube_parser.fetch(result["url_suffix"])
-                        data["content"] = contents
+                        data["content"] = self._summarization.summarize(query, contents)
                     except Exception as e:
                         logger(e, "error")
                         pass

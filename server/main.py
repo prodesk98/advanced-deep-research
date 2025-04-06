@@ -72,7 +72,7 @@ async def rerank(
 @app.post("/summarize", response_model=SummarizeResponse)
 async def summarize(
     payload: SummarizeRequest
-):
+) -> "SummarizeResponse":
     """
     Summarize the provided document based on the query.
     Contents English recommended

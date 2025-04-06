@@ -134,7 +134,6 @@ class AgentDeepSearch(DeepSearch):
                 summary = self._summarize_results(sub_query, combined_results)
                 # Append the summary to the chunks
                 self._chunks.append(summary)
-                breakpoint()
 
             # Reflect on the results and generate new sub-queries
             reflection = self._reflection(query, sub_queries, self._chunks)
