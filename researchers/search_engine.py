@@ -137,6 +137,10 @@ class SearchEngine(BaseSearchService):
                         logger(
                             f"Failed to summarize the content from {e.message}"
                         )
+                    except Exception as e:
+                        logger(
+                            f"Failed to parse the content from {e}"
+                        )
 
             reranked_results = self._reranker.rerank(query, chunks)
 

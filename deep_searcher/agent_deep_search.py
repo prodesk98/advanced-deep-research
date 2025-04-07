@@ -1,5 +1,3 @@
-import concurrent
-from concurrent.futures import ThreadPoolExecutor
 from typing import Optional
 
 from streamlit.delta_generator import DeltaGenerator
@@ -303,25 +301,31 @@ class AgentDeepSearch(DeepSearch):
     def _len_tokens(self, documents: list[str]) -> int:
         return self.calc_tokens() + len(self._tokenizer.encode("\n".join(documents)))
 
-    def _parallel_search(self, sub_query: str) -> list[str]:
-        with ThreadPoolExecutor() as executor:
-            futures = {
-                executor.submit(fn, sub_query): name
-                for fn, name in [
-                    (self._query_documents, "documents"),
-                    (self._query_search_engine, "search_engine"),
-                    (self._query_arxiv, "arxiv"),
-                ]
-            }
-            results = []
-            for future in concurrent.futures.as_completed(futures):
-                try:
-                    result = future.result()
+    def _pipeline_search(self, query: str) -> list[str]:
+        results = []
+        functions = {
+            # "documents": self._query_documents, # TODO: Enable this when the vector store is ready
+            "search_engine": self._query_search_engine,
+            "arxiv": self._query_arxiv,
+        }
+        for name, func in functions.items():
+            try:
+                result = func(query) # type: ignore
+                if result and len(result) > 0:
                     results.append(result)
-                except Exception as e:
-                    logger(f"Error in {futures[future]} search: {str(e)}", "error")
-                    results.append("")
-            return results
+            except (SearchEngineError, BraveSearchError, ArxivSearchError, SemanticSearchError) as e:
+                logger(
+                    f"{self.FLAG} Error performing {name} search: {e.message}",
+                    "error",
+                    self._ui,
+                )
+            except Exception as e:
+                logger(
+                    f"{self.FLAG} Error performing {name} search: {e}",
+                    "error",
+                    self._ui,
+                )
+        return results
 
     def run(self, query: str) -> str:
         # 1. Submit a research query
@@ -341,7 +345,7 @@ class AgentDeepSearch(DeepSearch):
         ):
             for sub_query in sub_queries:
                 # Combine the results and return and summarize them
-                combined_results = self._parallel_search(sub_query)
+                combined_results = self._pipeline_search(sub_query)
                 # Append the summary to the chunks
                 self._chunks.append(self._summarize_results(sub_query, combined_results))
 
