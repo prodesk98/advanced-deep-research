@@ -1,3 +1,5 @@
+import concurrent
+from concurrent.futures import ThreadPoolExecutor
 from typing import Optional
 
 from streamlit.delta_generator import DeltaGenerator
@@ -301,6 +303,26 @@ class AgentDeepSearch(DeepSearch):
     def _len_tokens(self, documents: list[str]) -> int:
         return self.calc_tokens() + len(self._tokenizer.encode("\n".join(documents)))
 
+    def _parallel_search(self, sub_query: str) -> list[str]:
+        with ThreadPoolExecutor() as executor:
+            futures = {
+                executor.submit(fn, sub_query): name
+                for fn, name in [
+                    (self._query_documents, "documents"),
+                    (self._query_search_engine, "search_engine"),
+                    (self._query_arxiv, "arxiv"),
+                ]
+            }
+            results = []
+            for future in concurrent.futures.as_completed(futures):
+                try:
+                    result = future.result()
+                    results.append(result)
+                except Exception as e:
+                    logger(f"Error in {futures[future]} search: {str(e)}", "error")
+                    results.append("")
+            return results
+
     def run(self, query: str) -> str:
         # 1. Submit a research query
         # 2. Generate sub-queries
@@ -318,27 +340,8 @@ class AgentDeepSearch(DeepSearch):
             len(sub_queries) > 0
         ):
             for sub_query in sub_queries:
-                documents_results = ""
-                google_results = ""
-                arxiv_results = ""
-
-                try:
-                    documents_results = self._query_documents(sub_query)
-                except SemanticSearchError as e:
-                    logger(e.message, "error")
-
-                try:
-                    google_results = self._query_search_engine(sub_query)
-                except SearchEngineError as e:
-                    logger(e.message, "error")
-
-                try:
-                    arxiv_results = self._query_arxiv(sub_query)
-                except ArxivSearchError as e:
-                    logger(e.message, "error")
-
                 # Combine the results and return and summarize them
-                combined_results = [documents_results, google_results, arxiv_results]
+                combined_results = self._parallel_search(sub_query)
                 # Append the summary to the chunks
                 self._chunks.append(self._summarize_results(sub_query, combined_results))
 

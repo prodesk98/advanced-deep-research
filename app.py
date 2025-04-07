@@ -59,8 +59,7 @@ with st.sidebar:
 
     if uploaded_file is not None:
         try:
-            pdf_parser = PDFParser(uploaded_file.read())
-            pdf_text = pdf_parser.to_text()
+            pdf_text = PDFParser().parse(uploaded_file.read())
             if st.button("Analisar PDF"):
                 prompt = pdf_text
                 pdf_text = ""

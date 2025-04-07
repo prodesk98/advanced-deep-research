@@ -12,7 +12,7 @@ class BraveSearchResult(BaseModel):
 class SearchResult(BaseModel):
     title: str
     description: str
-    content: Optional[str] = ""
-    link: str
+    content: str = ""
+    link: Optional[str] = None
 
 

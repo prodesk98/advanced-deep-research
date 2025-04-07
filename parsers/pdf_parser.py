@@ -16,6 +16,12 @@ class PDFParser(BaseParser):
             return f.name
 
     def parse(self, values: bytes) -> Optional[str]:
+        """
+        Parse the PDF content and convert it to text.
+        Using pymupdf4llm to convert PDF to text.
+        :param values:
+        :return:
+        """
         try:
             path = self._temporary_file(values)
         except Exception:

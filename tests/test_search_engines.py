@@ -1,7 +1,7 @@
 
 
 def test_brave_search():
-    from researchers import BraveSearch
+    from researchers import BraveSearch # noqa
     brave_search = BraveSearch()
     query = "Artificial Intelligence"
     limit = 5

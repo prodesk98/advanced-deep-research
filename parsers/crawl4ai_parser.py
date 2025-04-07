@@ -75,6 +75,7 @@ class WebBrowserCrawlerParser(BaseParser):
     def parse(self, url: str) -> Optional[str]:
         """
         Get the Markdown content of the URL.
+        Use the synchronous method to fetch the content of the URL.
         :return: The content in Markdown format.
         """
         return asyncio.run(self._run_web_crawler(url))

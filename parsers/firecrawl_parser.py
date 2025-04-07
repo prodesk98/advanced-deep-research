@@ -31,6 +31,7 @@ class FirecrawlParser(BaseParser):
     def parse(self, url: str) -> Optional[str]:
         """
         Get the Markdown content of the URL.
+        Using Firecrawl API to fetch the content of the URL.
         :param url:
         :return:
         """

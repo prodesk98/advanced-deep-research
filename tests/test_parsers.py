@@ -7,8 +7,7 @@ def test_pdf_parser():
     with open("./resources/sample.pdf", "rb") as pdf_file:
         values = pdf_file.read()
         pdf_file.close()
-        pdf_parser = PDFParser(values)
-        contents = pdf_parser.to_text()
+        contents = PDFParser().parse(values)
         assert contents is not None, "PDF parsing failed"
         assert "# Sample PDF" in contents, "PDF content does not match expected value"
 
@@ -18,13 +17,12 @@ def test_youtube_parser():
 
     url = "https://www.youtube.com/watch?v=GPRwA9BG-m4"
     youtube_parser = YoutubeParser()
-    contents = youtube_parser.fetch(url)
+    contents = youtube_parser.parse(url)
     assert contents is not None, "YouTube parsing failed"
     assert "say the word" in contents, "YouTube content does not match expected value"
 
 
-@pytest.mark.asyncio
-async def test_web_parser():
+def test_web_parser():
     from parsers.crawl4ai_parser import WebBrowserCrawlerParser
 
     for url in [
@@ -32,8 +30,7 @@ async def test_web_parser():
         "https://www.python.org",
         "https://en.wikipedia.org/wiki/Reinforcement_learning",
     ]:
-        web_crawler_parser = WebBrowserCrawlerParser()
-        contents = await web_crawler_parser.aget_markdown(url)
+        contents = WebBrowserCrawlerParser().parse(url)
         assert contents is not None, f"Web parsing failed for {url}"
         assert ("Example Domain" in contents or
                 "Python" in contents or
@@ -44,8 +41,7 @@ def test_firecrawl_parser():
     from parsers.firecrawl_parser import FirecrawlParser
 
     url = "https://www.example.com"
-    firecrawl_parser = FirecrawlParser()
-    contents = firecrawl_parser.get_markdown(url)
+    contents = FirecrawlParser().parse(url)
     assert contents is not None, "Firecrawl parsing failed"
     assert "Example Domain" in contents, "Firecrawl content does not match expected value"
 
