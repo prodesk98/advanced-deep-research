@@ -46,7 +46,7 @@ class SearchEngine(BaseSearchService):
                     "lang:en",
                 ]
             )
-            results = googlesearch.search(advanced_query, num_results=1, lang=LANGUAGE)
+            results = googlesearch.search(advanced_query, num_results=limit, lang=LANGUAGE, advanced=True)
             return [
                 SearchResult(
                     title=result.title,
@@ -115,7 +115,7 @@ class SearchEngine(BaseSearchService):
                     SearchResult(
                         title=result.title,
                         description=result.description,
-                        link=result.url,
+                        link=result.link,
                     )
                     for result in results
                 ]
