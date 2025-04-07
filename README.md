@@ -148,7 +148,7 @@ graph TD
 - [x] Reranker filtering (threshold-based)
 - [x] Reflective agent for iterative research
 - [x] Final summarizer for clarity
-- [ ] CLI / Web Interface
+- [x] CLI / Web Interface
 - [ ] Export to Markdown / PDF
 - [ ] Chrome/Firefox extension for contextual search
 
