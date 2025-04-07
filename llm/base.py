@@ -1,10 +1,9 @@
 from abc import ABC, abstractmethod
-from typing import TypeVar, Optional
+from typing import TypeVar
 
 from langchain_core.messages import BaseMessage
-from streamlit.delta_generator import DeltaGenerator
 
-from schemas import RerankResponse
+from schemas import RerankResponse, ReflectionResultSchema
 
 T = TypeVar("T", bound=BaseMessage)
 
@@ -15,7 +14,7 @@ class BaseLLM(ABC):
     """
 
     @abstractmethod
-    def generate(self, chat_history: list[BaseMessage], placeholder: Optional[DeltaGenerator]) -> str:
+    def generate(self, chat_history: list[BaseMessage]) -> str:
         """
         Generate text based on the provided prompt.
         """
@@ -50,7 +49,7 @@ class BaseLLM(ABC):
 
 
     @abstractmethod
-    def reflection(self, query: str, sub_queries: list[str], chunks: list[str]) -> list[str]:
+    def reflection(self, query: str, sub_queries: list[str], chunks: list[str]) -> ReflectionResultSchema:
         """
         Generate a reflection based on the provided query, sub-queries, and chunks.
         :param query:

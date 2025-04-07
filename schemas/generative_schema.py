@@ -26,7 +26,7 @@ class SubQueriesResultSchema(BaseModel):
     queries: list[str] = Field(
         ...,
         title="Sub-Queries",
-        description="List of sub-queries generated from the original query."
+        description="List of sub-queries generated from the original query.",
     )
 
 
@@ -34,6 +34,13 @@ class ReflectionResultSchema(BaseModel):
     sub_queries: list[str] = Field(
         default_factory=list,
         title="Sub-Queries",
-        description="The sub-queries generated based on the original query.",
+        description="The sub-queries generated based on the original query."
+                    "Returned as an empty list if the original query is about writing a report or creating content.",
+    )
+    complete_search: bool = Field(
+        default=False,
+        title="Complete Search",
+        description="Indicates whether the search is complete or not."
+                    "When all queries have been answered.",
     )
 

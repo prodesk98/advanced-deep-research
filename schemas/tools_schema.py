@@ -54,3 +54,11 @@ class SearchGoogleEngineSchema(BaseModel):
         title="Max Results",
         description="The maximum number of results to return",
     )
+
+
+class SearchDeepResearcherSchema(BaseModel):
+    query: str = Field(
+        ...,
+        title="Search Query",
+        description="The search query to find papers on Deep Researcher. English Only.",
+    )

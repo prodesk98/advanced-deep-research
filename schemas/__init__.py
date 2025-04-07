@@ -17,5 +17,7 @@ from .tools_schema import (
     ArxivPaperSearchSchema,
     SearchDocumentsSchema,
     SearchGoogleEngineSchema,
+    SearchDeepResearcherSchema,
 )
 from .summarize_schema import SummarizeRequest, SummarizeResponse
+from .search_engine_schema import BraveSearchResult, SearchResult

@@ -37,8 +37,8 @@ from schemas import (
     ReflectionResultSchema
 )
 from exceptions import (
-    GoogleSearchError, SemanticSearchError,
-    ArxivSearchError, WebParserParserError,
+    SearchEngineError, SemanticSearchError,
+    ArxivSearchError, CrawlerParserError,
     YoutubeParserError, GenerativeError
 )
 from .base import BaseLLM
@@ -55,9 +55,8 @@ T = TypeVar("T", bound=BaseModel)
 
 
 class AgentCallbackHandler(BaseCallbackHandler):
-    def __init__(self, placeholder: Optional[DeltaGenerator]):
-        self._placeholder = placeholder
-        self._feedback_text = ""
+    def __init__(self, ui: Optional[DeltaGenerator] = None):
+        self._ui = ui
         self.actions: dict[str, str] = {}
 
     def on_agent_action(
@@ -68,10 +67,8 @@ class AgentCallbackHandler(BaseCallbackHandler):
         parent_run_id: Optional[UUID] = None,
         **kwargs: Any,
     ) -> Any:
-        self._feedback_text += f"\n\n⚙️ Agent action: {action.tool} with input: {action.tool_input}"
         self.actions[run_id.hex] = action.tool
-        if self._placeholder:
-            self._placeholder.markdown(self._feedback_text)
+        logger(message=f"⚙️ Agent action: {action.tool} with input: {action.tool_input}", level="info", ui=self._ui)
 
 
     def on_agent_finish(
@@ -82,11 +79,7 @@ class AgentCallbackHandler(BaseCallbackHandler):
         parent_run_id: Optional[UUID] = None,
         **kwargs: Any,
     ) -> Any:
-        if len(self.actions) == 0:
-            return
-        self._feedback_text += f"\n\n✅ Agent finished"
-        if self._placeholder:
-            self._placeholder.markdown(self._feedback_text)
+        logger(message=f"✅ Agent Finished", level="info", ui=self._ui)
 
 
 class OpenAILLM(BaseLLM):
@@ -94,9 +87,14 @@ class OpenAILLM(BaseLLM):
     OpenAI LLM wrapper for the OpenAI API.
     """
 
-    def __init__(self, namespace: Optional[str] = None):
+    def __init__(self, namespace: Optional[str] = None, ui: Optional[DeltaGenerator] = None):
         self._namespace = namespace or "default"
-        self._tools = Tools(self._namespace)
+        self._ui = ui
+        self._tools = Tools(
+            namespace=self._namespace,
+            ui=self._ui,
+            llm=self
+        )
         self._chat_llm = ChatOpenAI(
             base_url=OPENAI_API_BASE,
             api_key=OPENAI_API_KEY,
@@ -106,22 +104,16 @@ class OpenAILLM(BaseLLM):
         )
 
     @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
-    def generate(self, chat_history: list[BaseMessage], placeholder: Optional[DeltaGenerator] = None) -> str:
+    def generate(self, chat_history: list[BaseMessage]) -> str:
         """
         Generate a response based on the provided chat history.
         :param chat_history:
-        :param placeholder:
         :return:
         """
         logger(
-            " ".join(
-                [
-                    f"[{self._namespace}] Starting agent generation...",
-                    f"tools: {len(self._tools.get())}",
-                    f"chat: {len(chat_history)}",
-                ]
-            ),
+            f"[{self._namespace}] Starting agent generation...",
             level="info",
+            ui=self._ui,
         )
         # System template
         template = (
@@ -153,7 +145,7 @@ class OpenAILLM(BaseLLM):
             early_stopping_method="force",
             handle_parsing_errors=True,
             return_intermediate_steps=True,
-            callbacks=[AgentCallbackHandler(placeholder)] if placeholder else None,
+            callbacks=[AgentCallbackHandler(self._ui)],
         )
         #
 
@@ -165,13 +157,13 @@ class OpenAILLM(BaseLLM):
                 }
             )
             return result.get("output", "")
-        except GoogleSearchError as e:
+        except SearchEngineError as e:
             return e.message
         except SemanticSearchError as e:
             return e.message
         except ArxivSearchError as e:
             return e.message
-        except WebParserParserError as e:
+        except CrawlerParserError as e:
             return e.message
         except YoutubeParserError as e:
             return e.message
@@ -216,6 +208,12 @@ class OpenAILLM(BaseLLM):
         :param quantities:
         :return:
         """
+        logger(
+            f"Generating {quantities} flashcards for prompt: {prompt}",
+            level="info",
+            ui=self._ui,
+        )
+
         template = (
             FLASHCARD_PROMPT.replace("{{natural_language}}", NATURAL_LANGUAGE)  # Replace natural language if have it.
         )
@@ -229,6 +227,14 @@ class OpenAILLM(BaseLLM):
             },
         )
 
+        if not output.flashcards:
+            logger(
+                f"No flashcards generated for prompt: {prompt}",
+                level="error",
+                ui=self._ui,
+            )
+            raise GenerativeError("No flashcards generated.")
+
         return output.flashcards
 
     @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
@@ -238,6 +244,12 @@ class OpenAILLM(BaseLLM):
         :param query:
         :return:
         """
+        logger(
+            f"Generating sub-queries for query: {query}",
+            level="info",
+            ui=self._ui,
+        )
+
         template = SUB_QUERY_PROMPT
 
         output = self._generate_structured_output(
@@ -245,14 +257,23 @@ class OpenAILLM(BaseLLM):
             prompt=query,
             schema=SubQueriesResultSchema,
             inputs={
+                "current_date": datetime.now().strftime("%Y"),
                 "original_query": query,
             },
         )
 
+        if not output.queries:
+            logger(
+                f"No sub-queries generated for query: {query}",
+                level="error",
+                ui=self._ui,
+            )
+            raise GenerativeError("No sub-queries generated.")
+
         return output.queries
 
     @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
-    def reflection(self, query: str, sub_queries: list[str], chunks: list[str]) -> list[str]:
+    def reflection(self, query: str, sub_queries: list[str], chunks: list[str]) -> ReflectionResultSchema:
         """
         Generate a reflection based on the provided query, sub-queries, and chunks.
         :param query:
@@ -268,12 +289,20 @@ class OpenAILLM(BaseLLM):
             schema=ReflectionResultSchema,
             inputs={
                 "original_query": query,
-                "sub_queries": sub_queries,
-                "chunks": "\n".join(chunks),
+                "previous_queries": sub_queries,
+                "previous_documents": "\n".join(chunks),
             },
         )
 
-        return output.sub_queries
+        if not output.sub_queries:
+            logger(
+                f"No reflection generated for query: {query}",
+                level="error",
+                ui=self._ui,
+            )
+            raise GenerativeError("No reflection generated.")
+
+        return output
 
     @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
     def summarize(self, query: str, chunks: list[str]) -> str:
@@ -302,9 +331,18 @@ class OpenAILLM(BaseLLM):
             result = chain.invoke(
                 {
                     "original_query": query,
-                    "chunks": "\n".join(chunks),
+                    "chunks": "\n\n".join(chunks),
                 }
             )
+
+            if not result:
+                logger(
+                    f"No summary generated for query: {query}",
+                    level="error",
+                    ui=self._ui,
+                )
+                raise GenerativeError("No summary generated.")
+
             return result.content
         except Exception as e:
             raise GenerativeError(

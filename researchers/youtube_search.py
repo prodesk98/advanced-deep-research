@@ -6,7 +6,7 @@ from exceptions import YoutubeSearchError
 from llm import get_summarization
 from llm.summarization import Summarization
 from loggings import logger
-from utils import YoutubeParser
+from parsers import YoutubeParser
 from .base import BaseSearchService
 from youtube_search import YoutubeSearch as YoutubeSearchAPI
 

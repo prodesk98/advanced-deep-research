@@ -57,10 +57,18 @@ Based on the following text, generate a single flashcard consisting of:
 
 
 # Based: https://github.com/zilliztech/deep-searcher/blob/master/deepsearcher/agent/deep_search.py#L12
+# Bases: https://github.com/langchain-ai/local-deep-researcher/blob/main/src/ollama_deep_researcher/prompts.py
 SUB_QUERY_PROMPT = """You are an assistant specialized in creating sub-queries to enhance the understanding of a given text.
 If this is a very simple question and no decomposition is necessary, then keep the only one original question in the python code list.
 
-Original Question: {original_query}
+<CONTEXT>
+Current date: {current_date}
+Please ensure your queries account for the most current information available as of this date.
+</CONTEXT>
+
+<TOPIC>
+{original_query}
+</TOPIC>
 
 ### Example:
 Original Question: "Explain deep learning"
@@ -72,35 +80,54 @@ Sub-Queries:
 
 
 # Based: https://github.com/zilliztech/deep-searcher/blob/master/deepsearcher/agent/deep_search.py#L42
-REFLECT_PROMPT = """"Determine whether additional search queries are needed based on the original query, previous sub queries, and all retrieved document chunks. 
-If further research is required, provide a list of up to 3 search queries. If no further research is required, return an empty list.
+# Based: https://github.com/langchain-ai/local-deep-researcher/blob/main/src/ollama_deep_researcher/prompts.py
+REFLECT_PROMPT = """"You are an expert research assistant analyzing a summary about: {original_query}.
 
-If the original query is to write a report, then you prefer to generate some further queries, instead return an empty list.
+<GOAL>
+1. Identify knowledge gaps or areas that need deeper exploration
+2. Generate a follow-up question that would help expand your understanding
+3. Focus on technical details, implementation specifics, or emerging trends that weren't fully covered
+</GOAL>
 
-Original Query: 
-{original_query}
+<PREVIOUS_QUERIES>
+{previous_queries}
+</PREVIOUS_SUMMARY>
 
----
-
-Previous Sub Queries: 
-{sub_queries}
-
----
-
-Related Chunks: 
-{chunks}"""
+<PREVIOUS_DOCUMENTS>
+{previous_documents}
+</PREVIOUS_DOCUMENTS>"""
 #
 
 
 # Based: https://github.com/zilliztech/deep-searcher/blob/master/deepsearcher/agent/naive_rag.py#L10
+# Based: https://github.com/langchain-ai/local-deep-researcher/blob/main/src/ollama_deep_researcher/prompts.py
 SUMMARIZER_PROMPT = """You are an assistant specialized in summarizing content.
 Summarize a specific and detailed answer or report based on the previous queries and the retrieved document chunks.
 
-Original Query:
+---
+### Guidelines:
+
+When creating a NEW summary:
+1. Highlight the most relevant information related to the user topic from the search results
+2. Ensure a coherent flow of information
+
+When EXTENDING an existing summary:                                                                                                                 
+1. Read the existing summary and new search results carefully.                                                    
+2. Compare the new information with the existing summary.                                                         
+3. For each piece of new information:                                                                             
+    a. If it's related to existing points, integrate it into the relevant paragraph.                               
+    b. If it's entirely new but relevant, add a new paragraph with a smooth transition.                            
+    c. If it's not relevant to the user topic, skip it.                                                            
+4. Ensure all additions are relevant to the user's topic.                                                         
+5. Verify that your final output differs from the input summary.    
+
+---
+
+### Original Query:
 {original_query}
 
 ---
 
-Related Chunks:
+### Document Chunks:
 {chunks}"""
 #

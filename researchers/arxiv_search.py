@@ -14,15 +14,13 @@ class ArxivSearch(BaseSearchService):
         self._reranker = reranker or get_reranker()
         self._summarization = summarization or get_summarization()
 
-    def search(self, query: str, limit: int = 3, parser: bool = False) -> str:
+    def search(self, query: str, limit: int = 3) -> str:
         """
         Search for papers on arXiv based on a query.
         :param query: str
             The search query.
         :param limit: int
             The maximum number of results to return.
-        :param parser: bool
-            Whether to parse the results or not.
         :return:
             str: The titles and summaries of the papers found.
         """

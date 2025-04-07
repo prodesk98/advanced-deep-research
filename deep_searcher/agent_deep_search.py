@@ -1,19 +1,57 @@
-from exceptions import GenerativeError, GoogleSearchError, SemanticSearchError, ArxivSearchError
-from llm.openai_llm import OpenAILLM
+from typing import Optional
+
+from streamlit.delta_generator import DeltaGenerator
+
+from exceptions import (
+    GenerativeError,
+    SearchEngineError,
+    BraveSearchError,
+    SemanticSearchError,
+    ArxivSearchError,
+    SemanticUpsertError
+)
 from loggings import logger
-from services import SemanticSearch, GoogleSearch, ArxivSearch
+from schemas import ReflectionResultSchema
+from researchers import SemanticSearch, SearchEngine, ArxivSearch
 from .base import DeepSearch
+from llm.base import BaseLLM
 
 
 class AgentDeepSearch(DeepSearch):
-    def __init__(self):
-        super().__init__()
-        self.depth: int = 0
+    FLAG = "**🧠🔍 Deep Research Agent**"
+
+    def __init__(
+        self,
+        llm: BaseLLM,
+        max_depth: int = 3,
+        max_tokens: int = 4096,
+        result_limit: int = 5,
+        ui: Optional[DeltaGenerator] = None,
+    ):
+        super().__init__(max_depth, max_tokens)
+        self._depth: int = 0
+        self._result_limit = result_limit
+        self._ui = ui
         self._namespace = "deep-searcher"
         self._semantic_search = SemanticSearch(namespace=self._namespace)
         self._arxiv_search = ArxivSearch()
-        self._google_search = GoogleSearch()
-        self._llm = OpenAILLM(namespace=self._namespace)
+        self._search_engine = SearchEngine()
+        self._llm = llm
+
+    def _upsert_documents(self, document: str) -> None:
+        """
+        Upsert documents to the vector store.
+        :param document:
+        :return:
+        """
+        try:
+            self._semantic_search.upsert(document)
+        except SemanticUpsertError as e:
+            logger(
+                f"{self.FLAG} Error upserting document: {e.message}",
+                "error",
+                self._ui,
+            )
 
     def _generate_sub_queries(self, query: str) -> list[str]:
         """
@@ -21,28 +59,85 @@ class AgentDeepSearch(DeepSearch):
         :param query:
         :return:
         """
+        logger(
+            f"{self.FLAG} Generating sub-queries for the query: {query}",
+            "info",
+            self._ui,
+        )
         try:
             sub_queries = self._llm.generate_sub_queries(query)
-            return sub_queries
+            result = sub_queries
+            if not isinstance(result, list):
+                logger(
+                    f"{self.FLAG} Error generating sub-queries. Expected a list but got {type(result)}",
+                    "error",
+                    self._ui,
+                )
+                raise GenerativeError("Sub-queries must be a list.")
+            if len(result) == 0:
+                logger(
+                    f"{self.FLAG} No sub-queries generated.",
+                    "warning",
+                    self._ui,
+                )
+                return []
+            logger(
+                f"{self.FLAG} Generated sub-queries: %s" % ", ".join(result),
+                "info",
+                self._ui,
+            )
+            return result
         except GenerativeError as e:
+            logger(
+                f"{self.FLAG} Error generating sub-queries: {e.message}",
+                "error",
+                self._ui,
+            )
             raise e
 
-    def _summarize_results(self, query: str, documents: list[str], terminate: bool = False) -> str:
+    def _summarize_results(self, query: str, documents: list[str]) -> str:
         """
         Summarize the results based on the provided query.
         :param query:
         :param documents:
         :return:
         """
+        logger(
+            f"{self.FLAG} Summarizing results for the query: {query}\nchunks: %s" % "\n".join(documents),
+            "info",
+            self._ui,
+        )
         try:
             summary = self._llm.summarize(query, documents)
-            if terminate:
-                self._semantic_search.upsert(summary) # Save the summary to the semantic search (Vector DB)
+            if not isinstance(summary, str):
+                logger(
+                    f"{self.FLAG} Error summarizing results. Expected a string but got {type(summary)}",
+                    "error",
+                    self._ui,
+                )
+                raise GenerativeError("Summary must be a string.")
+            if len(summary) == 0:
+                logger(
+                    f"{self.FLAG} No summary generated.",
+                    "warning",
+                    self._ui,
+                )
+                return ""
+            logger(
+                f"{self.FLAG} Generated summary: {summary}",
+                "info",
+                self._ui,
+            )
             return summary
         except GenerativeError as e:
+            logger(
+                f"{self.FLAG} Error generating summary: {e.message}",
+                "error",
+                self._ui,
+            )
             raise e
 
-    def _reflection(self, query: str, sub_queries: list[str], chunks: list[str]) -> list[str]:
+    def _reflection(self, query: str, sub_queries: list[str], chunks: list[str]) -> ReflectionResultSchema:
         """
         Generate a reflection based on the provided query, sub-queries, and chunks.
         :param query:
@@ -50,22 +145,73 @@ class AgentDeepSearch(DeepSearch):
         :param chunks:
         :return:
         """
+        logger(
+            f"{self.FLAG} Generating reflection for the query: {query}\nsub_queries: %s" % "\n".join(sub_queries),
+            "info",
+            self._ui,
+        )
         try:
             reflection = self._llm.reflection(query, sub_queries, chunks)
+            logger(
+                f"{self.FLAG} Generated reflection: %s" % "\n".join(reflection.sub_queries),
+                "info",
+                self._ui,
+            )
             return reflection
         except GenerativeError as e:
+            logger(
+                f"{self.FLAG} Error generating reflection: {e.message}",
+                "error",
+                self._ui,
+            )
             raise e
 
-    def _query_google(self, query: str) -> str:
+    def _query_search_engine(self, query: str) -> str:
         """
-        Perform a Google search based on the provided query.
+        Perform a search engine query based on the provided query.
         :param query:
         :return:
         """
+        logger(
+            f"{self.FLAG} Performing Google search for the query: {query}",
+            "info",
+            self._ui,
+        )
         try:
-            result = self._google_search.search(query)
+            result = self._search_engine.search(query, limit=self._result_limit)
+            if not isinstance(result, str):
+                logger(
+                    f"{self.FLAG} Error performing Google search. Expected a string but got {type(result)}",
+                    "error",
+                    self._ui,
+                )
+                raise GenerativeError("Google search result must be a string.")
+            if len(result) == 0:
+                logger(
+                    f"{self.FLAG} No Google search result found.",
+                    "warning",
+                    self._ui,
+                )
+                return ""
+            logger(
+                f"{self.FLAG} Google search result: {result}",
+                "info",
+                self._ui,
+            )
             return result
-        except GoogleSearchError as e:
+        except SearchEngineError as e:
+            logger(
+                f"{self.FLAG} Error performing Google search: {e.message}",
+                "error",
+                self._ui,
+            )
+            raise e
+        except BraveSearchError as e:
+            logger(
+                f"{self.FLAG} Error performing Brave search: {e.message}",
+                "error",
+                self._ui,
+            )
             raise e
 
     def _query_arxiv(self, query: str) -> str:
@@ -74,10 +220,40 @@ class AgentDeepSearch(DeepSearch):
         :param query:
         :return:
         """
+        logger(
+            f"{self.FLAG} Performing Arxiv search for the query: {query}",
+            "info",
+            self._ui,
+        )
+
         try:
-            result = self._arxiv_search.search(query)
+            result = self._arxiv_search.search(query, limit=self._result_limit)
+            if not isinstance(result, str):
+                logger(
+                    f"{self.FLAG} Error performing Arxiv search. Expected a string but got {type(result)}",
+                    "error",
+                    self._ui,
+                )
+                raise GenerativeError("Arxiv search result must be a string.")
+            if len(result) == 0:
+                logger(
+                    f"{self.FLAG} No Arxiv search result found.",
+                    "warning",
+                    self._ui,
+                )
+                return ""
+            logger(
+                f"{self.FLAG} Arxiv search result: {result}",
+                "info",
+                self._ui,
+            )
             return result or ""
         except ArxivSearchError as e:
+            logger(
+                f"{self.FLAG} Error performing Arxiv search: {e.message}",
+                "error",
+                self._ui,
+            )
             raise e
 
     def _query_documents(self, query: str) -> str:
@@ -86,10 +262,40 @@ class AgentDeepSearch(DeepSearch):
         :param query:
         :return:
         """
+        logger(
+            f"{self.FLAG} Performing Document search for the query: {query}",
+            "info",
+            self._ui,
+        )
+
         try:
-            result = self._semantic_search.search(query)
+            result = self._semantic_search.search(query, limit=self._result_limit)
+            if not isinstance(result, list):
+                logger(
+                    f"{self.FLAG} Error performing Document search. Expected a list but got {type(result)}",
+                    "error",
+                    self._ui,
+                )
+                raise GenerativeError("Document search result must be a list.")
+            if len(result) == 0:
+                logger(
+                    f"{self.FLAG} No Document search result found.",
+                    "warning",
+                    self._ui,
+                )
+                return ""
+            logger(
+                f"{self.FLAG} Document search result: %s" % "\n".join([r.text for r in result]),
+                "info",
+                self._ui,
+            )
             return "\n".join([r.text for r in result])
         except SemanticSearchError as e:
+            logger(
+                f"{self.FLAG} Error performing Document search: {e.message}",
+                "error",
+                self._ui,
+            )
             raise e
 
     def _len_tokens(self, documents: list[str]) -> int:
@@ -107,45 +313,51 @@ class AgentDeepSearch(DeepSearch):
         sub_queries = self._generate_sub_queries(query)
 
         while (
-            self.calc_tokens() < self.max_tokens * 2 and
-            self.depth < self.max_depth and
+            self.calc_tokens() < self.max_tokens and
+            self._depth < self.max_depth and
             len(sub_queries) > 0
         ):
             for sub_query in sub_queries:
+                documents_results = ""
+                google_results = ""
+                arxiv_results = ""
+
                 try:
-                    # Search for documents using Semantic search and Google search
                     documents_results = self._query_documents(sub_query)
-                    google_results = self._query_google(sub_query)
-                    arxiv_results = self._query_arxiv(sub_query)
-                except GoogleSearchError as e:
-                    logger(e.message, "error")
-                    continue
-                except ArxivSearchError as e:
-                    logger(e.message, "error")
-                    continue
                 except SemanticSearchError as e:
                     logger(e.message, "error")
-                    continue
+
+                try:
+                    google_results = self._query_search_engine(sub_query)
+                except SearchEngineError as e:
+                    logger(e.message, "error")
+
+                try:
+                    arxiv_results = self._query_arxiv(sub_query)
+                except ArxivSearchError as e:
+                    logger(e.message, "error")
 
                 # Combine the results and return and summarize them
                 combined_results = [documents_results, google_results, arxiv_results]
-                if self._len_tokens(combined_results) > self.max_tokens:
-                    break
-                summary = self._summarize_results(sub_query, combined_results)
                 # Append the summary to the chunks
-                self._chunks.append(summary)
+                self._chunks.append(self._summarize_results(sub_query, combined_results))
 
             # Reflect on the results and generate new sub-queries
-            reflection = self._reflection(query, sub_queries, self._chunks)
+            summary = self._summarize_results(query, self._chunks)
+            self._upsert_documents(summary)
+            reflection = self._reflection(query, sub_queries, [summary])
             # Increment depth
-            self.depth += 1
+            self._depth += 1
 
-            # Check if the reflection is empty
-            if len(reflection) == 0:
+            # Check if the reflection is empty or if the search is complete
+            if (
+                len(reflection.sub_queries) == 0 or
+                reflection.complete_search
+            ):
                 break
 
             # Generate new sub-queries
-            sub_queries = reflection
+            sub_queries = reflection.sub_queries
 
-        return self._summarize_results(query, self._chunks, True)
+        return self._summarize_results(query, self._chunks)
 

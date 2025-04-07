@@ -1,16 +1,26 @@
 
-def test_google_search():
-    from services import GoogleSearch
-    google_search = GoogleSearch()
+
+def test_brave_search():
+    from researchers import BraveSearch
+    brave_search = BraveSearch()
+    query = "Artificial Intelligence"
+    limit = 5
+    result = brave_search.search(query, limit)
+    assert len(result) > 0, "Expected result to have length greater than 0"
+
+
+def test_search_engine():
+    from researchers import SearchEngine
+    search_engine = SearchEngine()
     query = "Reinforcement Learning"
     limit = 5
-    result = google_search.search(query, limit)
+    result = search_engine.search(query, limit)
     assert isinstance(result, str), "Expected result to be a string"
     assert len(result) > 0, "Expected result to have length greater than 0"
 
 
 def test_youtube_search():
-    from services import YoutubeSearch
+    from researchers import YoutubeSearch
     youtube_search = YoutubeSearch()
     query = "Reinforcement Learning"
     limit = 5
@@ -20,7 +30,7 @@ def test_youtube_search():
 
 
 def test_arxiv_search():
-    from services import ArxivSearch
+    from researchers import ArxivSearch
     arxiv_search = ArxivSearch()
     query = "Quantum Computing"
     limit = 5
@@ -30,7 +40,7 @@ def test_arxiv_search():
 
 
 def test_semantic_search_upsert():
-    from services import SemanticSearch
+    from researchers import SemanticSearch
     semantic_search = SemanticSearch("default")
     document1 = """Machine Learning is a subset of artificial intelligence that focuses on the development of 
     algorithms that can learn from and make predictions based on data.
@@ -44,7 +54,7 @@ def test_semantic_search_upsert():
 
 
 def test_semantic_search_query():
-    from services import SemanticSearch
+    from researchers import SemanticSearch
     semantic_search = SemanticSearch("default")
     query = "Artificial Intelligence"
     limit = 5
@@ -53,7 +63,7 @@ def test_semantic_search_query():
 
 
 def test_semantic_search_search():
-    from services import SemanticSearch
+    from researchers import SemanticSearch
     semantic_search = SemanticSearch("default")
     query = "Machine Learning"
     limit = 5
@@ -62,7 +72,7 @@ def test_semantic_search_search():
 
 
 def test_semantic_delete():
-    from services import SemanticSearch
+    from researchers import SemanticSearch
     semantic_search = SemanticSearch("default")
     document_id = "test_document"
     semantic_search.delete_by_document_id(document_id)

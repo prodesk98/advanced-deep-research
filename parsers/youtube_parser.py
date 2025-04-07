@@ -3,13 +3,14 @@ from typing import Optional
 from youtube_transcript_api import YouTubeTranscriptApi
 from exceptions import YoutubeParserError
 from config import LANGUAGE
+from .base import BaseParser
 
 
-class YoutubeParser:
+class YoutubeParser(BaseParser):
     def __init__(self):
         self._client = YouTubeTranscriptApi()
 
-    def fetch(self, video_url: str) -> Optional[str]:
+    def parse(self, video_url: str) -> Optional[str]:
         """
         Fetch the transcript of a YouTube video.
         :param video_url:

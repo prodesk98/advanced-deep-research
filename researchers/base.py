@@ -4,7 +4,7 @@ from typing import Optional
 
 class BaseSearchService(ABC):
     @abstractmethod
-    def search(self, query: str, limit: int = 5, parser: bool = True):
+    def search(self, query: str, limit: int = 5):
         raise NotImplementedError("Subclasses should implement this method.")
 
     def query(self, query: str, limit: int = 5):

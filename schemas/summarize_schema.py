@@ -16,5 +16,4 @@ class SummarizeRequest(BaseModel):
     document: str = Field(
         ...,
         description="Document to summarize.",
-        max_length=4096,
     )

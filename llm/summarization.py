@@ -36,9 +36,6 @@ class Summarization(BaseSummarization):
         :param doc:
         :return:
         """
-        if self._calc_tokens(doc) > 1024:
-            raise SummarizationError("Document exceeds the maximum token limit of 1024.")
-
         return self._client.request(
             "summarize",
             SummarizeRequest(

@@ -117,6 +117,7 @@ class Summarization:
             stride=stride,
             truncation=True,
             return_overflowing_tokens=True,
+            padding="max_length",
             return_tensors="pt"
         )
 

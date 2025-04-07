@@ -2,8 +2,8 @@ from loggings import logger
 from typing import Optional
 
 
-class GoogleSearchError(Exception):
-    """Custom exception for Google search errors."""
+class SearchEngineError(Exception):
+    """Custom exception for search engine errors."""
     def __init__(self, message: str):
         self.message = message
         super().__init__(self.message)
@@ -37,7 +37,7 @@ class ArxivSearchError(Exception):
         logger(self.message, level="error")
 
 
-class WebParserParserError(Exception):
+class CrawlerParserError(Exception):
     """Custom exception for site parser errors."""
     def __init__(self, url: str, content: str):
         self.message = f"Web parser error for url {url}: {content}"
@@ -117,4 +117,10 @@ class ToolsError(Exception):
     """Custom exception for tools errors."""
     def __init__(self, message: str):
         super().__init__(message)
+
+class BraveSearchError(Exception):
+    """Custom exception for Brave Search errors."""
+    def __init__(self, message: str):
+        super().__init__(message)
+        self.message = message
 

@@ -28,12 +28,11 @@ class SemanticSearch(BaseSearchService):
         self._embedding = embeddings or get_embeddings()
         self._reranker = reranker or get_reranker()
 
-    def search(self, query: str, limit: int = 10, parser: bool = False) -> list["SearchResultSchema"]:
+    def search(self, query: str, limit: int = 10) -> list["SearchResultSchema"]:
         """
         Search for the most relevant documents based on the query.
         :param query: The query string to search for.
         :param limit: The maximum number of results to return.
-        :param parser: Whether to parse the results or not.
         :return: A list of "SearchResultSchema" containing the search results.
         """
         try:

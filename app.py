@@ -6,7 +6,7 @@ from langchain_core.messages import HumanMessage, AIMessage
 from llm.openai_llm import OpenAILLM
 from management import ConversationsManager
 from schemas import Message
-from utils import PDFParser
+from parsers import PDFParser
 
 
 pdf_text = ""
@@ -31,8 +31,13 @@ if "messages" not in st.session_state:
 
 chatId = st.session_state.chat_id or "default"
 
+
+# Placeholder for the feedback message
+feedback_placeholder = st.empty()
+#
+
 # Initialize the OpenAI LLM client
-llm = OpenAILLM(chatId)
+llm = OpenAILLM(namespace=chatId, ui=feedback_placeholder)
 #
 
 # Conversation Management
@@ -89,8 +94,6 @@ if prompt:
         st.session_state.flashcards = []
         st.session_state.current_flashcard = 0
         with st.spinner("Agentes gerando resumo..."):
-            # Placeholder for feedback
-            feedback_placeholder = st.empty()
             agent_output = llm.generate(
                 [
                     HumanMessage(content=m['content'])
@@ -101,7 +104,6 @@ if prompt:
                     )
                     for m in st.session_state.messages
                 ],
-                placeholder=feedback_placeholder,
             )
             st.session_state.summary = agent_output
             st.session_state.messages.append({"role": "assistant", "content": agent_output})

@@ -1,8 +1,9 @@
 
 def test_deepsearcher():
     from deep_searcher import AgentDeepSearch
+    from llm.openai_llm import OpenAILLM
 
-    agent = AgentDeepSearch()
+    agent = AgentDeepSearch(OpenAILLM())
 
     query = "Explain the concept of reinforcement learning."
 

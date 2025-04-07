@@ -16,6 +16,11 @@ from .environment import (
     QDRANT_COLLECTION,
     USE_RERANKER,
     USE_CHAT_MEMORY,
+    SEARCH_ENGINE,
+    SERPAPI_API_KEY,
+    BRAVE_API_KEY,
+    CRAWLER_ENGINE,
+    FIRECRAWL_API_KEY,
 )
 
 __all__ = [
@@ -36,4 +41,9 @@ __all__ = [
     "QDRANT_COLLECTION",
     "USE_RERANKER",
     "USE_CHAT_MEMORY",
+    "SEARCH_ENGINE",
+    "SERPAPI_API_KEY",
+    "BRAVE_API_KEY",
+    "CRAWLER_ENGINE",
+    "FIRECRAWL_API_KEY",
 ]

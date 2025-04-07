@@ -8,7 +8,7 @@ class DeepSearch(ABC):
     Base class for deep search algorithms.
     """
 
-    def __init__(self, max_depth: int = 10, max_tokens: int = 4096):
+    def __init__(self, max_depth: int = 3, max_tokens: int = 4096):
         """
         Initialize the deep search algorithm.
 

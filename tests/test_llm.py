@@ -109,9 +109,9 @@ def test_reflection():
         "Reinforcement learning has applications in robotics, game playing, and autonomous vehicles."
     ]
     result = llm.reflection(query, sub_queries, chunks)
-    assert isinstance(result, list), "Reflection result should be a list"
-    assert len(result) > 0, "Reflection result should not be empty"
-    assert all(isinstance(r, str) for r in result), "All reflection results should be strings"
+    assert isinstance(result.sub_queries, list), "Reflection result should be a list"
+    assert len(result.sub_queries) > 0, "Reflection result should not be empty"
+    assert all(isinstance(r, str) for r in result.sub_queries), "All reflection results should be strings"
 
 
 def test_summarize():
