@@ -1,7 +1,7 @@
 from config import USE_CHAT_MEMORY
 from factory import ConversationFactory
 from schemas import Message
-from services import SemanticSearch
+from researchers import SemanticSearch
 
 
 class ConversationsManager:

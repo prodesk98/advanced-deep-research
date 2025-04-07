@@ -2,6 +2,8 @@ from typing import Optional
 
 import googlesearch
 from serpapi import GoogleSearch as SerpapiGoogleSearch
+
+from parsers import CrawlEngine
 from .brave_search import BraveSearch
 
 from config import (
@@ -19,7 +21,6 @@ from llm.reranker import Reranker
 from llm.summarization import Summarization
 from loggings import logger
 from schemas import SearchResult
-from parsers import WebBrowserCrawlerParser
 from .base import BaseSearchService
 
 
@@ -119,27 +120,22 @@ class SearchEngine(BaseSearchService):
                     for result in results
                 ]
 
-            if len(results) == 0:
-                raise SearchEngineError(
-                    f"No results found for query: {query}"
-                )
-
             if parser:
                 for result in results:
                     try:
-                        contents = WebBrowserCrawlerParser().get_markdown(result.url)
+                        contents = CrawlEngine.perform(result.link)
                         summarized = self._summarization.summarize(
                             query,
                             contents
                         )
                         chunks.append(summarized)
-                    except CrawlerParserError:
+                    except CrawlerParserError as e:
                         logger(
-                            f"Failed to parse the content from {result.url}"
+                            f"Failed to parse the content from {e.url}"
                         )
-                    except SummarizationError:
+                    except SummarizationError as e:
                         logger(
-                            f"Failed to summarize the content from {result.url}"
+                            f"Failed to summarize the content from {e.message}"
                         )
 
             reranked_results = self._reranker.rerank(query, chunks)

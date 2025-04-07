@@ -4,7 +4,8 @@ from typing import Optional
 from langchain_core.tools import StructuredTool
 from streamlit.delta_generator import DeltaGenerator
 
-from exceptions import ToolsError
+from exceptions import ToolsError, YoutubeParserError, CrawlerParserError, ArxivSearchError, SemanticSearchError, \
+    SearchEngineError
 from loggings import logger
 from schemas import (
     TranscriptYoutubeVideoSchema,
@@ -14,7 +15,7 @@ from schemas import (
     SearchGoogleEngineSchema, SearchDeepResearcherSchema,
 )
 from parsers import (
-    WebBrowserCrawlerParser,
+    CrawlEngine,
     YoutubeParser
 )
 from researchers import (
@@ -56,7 +57,7 @@ class Tools:
 
         try:
             youtube_parser = YoutubeParser()
-            result = youtube_parser.fetch(video_url)
+            result = youtube_parser.parse(video_url)
             if not result:
                 raise ToolsError("No transcript found for the provided YouTube video URL.")
             logger(
@@ -65,6 +66,13 @@ class Tools:
                 ui=self._ui
             )
             return result
+        except YoutubeParserError as e:
+            logger(
+                f"Error fetching transcript: {e.message}",
+                level="error",
+                ui=self._ui
+            )
+            raise ToolsError(f"Failed to fetch transcript from YouTube: {e.message}")
         except Exception as e:
             logger(
                 f"Error fetching transcript: {e}",
@@ -97,10 +105,8 @@ class Tools:
         )
 
         try:
-            # Parse Website Constructor
-            web_parser = WebCrawler()
             # Convert the content to markdown
-            result = web_parser.get_markdown(url)
+            result = CrawlEngine.perform(url)
             if not result:
                 raise ToolsError("No content found for the provided URL.")
             logger(
@@ -109,6 +115,13 @@ class Tools:
                 ui=self._ui
             )
             return result
+        except CrawlerParserError as e:
+            logger(
+                f"Error fetching website content: {e.message}",
+                level="error",
+                ui=self._ui
+            )
+            raise ToolsError(f"Failed to fetch website content: {e.message}")
         except Exception as e:
             logger(
                 f"Error fetching website content: {e}",
@@ -155,6 +168,13 @@ class Tools:
                 ui=self._ui
             )
             return result
+        except ArxivSearchError as e:
+            logger(
+                f"Error fetching papers: {e.message}",
+                level="error",
+                ui=self._ui
+            )
+            raise ToolsError(f"Failed to fetch papers from arXiv: {e.message}")
         except Exception as e:
             raise ToolsError(f"Failed to fetch papers from ArXiv: {e}")
 
@@ -200,6 +220,13 @@ class Tools:
             # Search Engine Constructor
             semantic_search = SemanticSearch(self._namespace)
             return json.dumps(semantic_search.search(query, max_results))
+        except SemanticSearchError as e:
+            logger(
+                f"Error fetching documents: {e.message}",
+                level="error",
+                ui=self._ui
+            )
+            raise ToolsError(f"Failed to fetch documents from semantic search: {e.message}")
         except Exception as e:
             raise ToolsError(
                 f"Failed to fetch documents from semantic search: {e}"
@@ -235,7 +262,11 @@ class Tools:
         try:
             # Search Engine Constructor
             search_engine = SearchEngine()
-            result = json.dumps(google_search.search(query, max_results))
+            result = search_engine.search(
+                query,
+                limit=max_results,
+                parser=True
+            )
             if not result:
                 raise ToolsError("No results found for the provided query.")
             logger(
@@ -244,6 +275,13 @@ class Tools:
                 ui=self._ui
             )
             return result
+        except SearchEngineError as e:
+            logger(
+                f"Error fetching documents: {e.message}",
+                level="error",
+                ui=self._ui
+            )
+            raise ToolsError(f"Failed to fetch documents from Google: {e.message}")
         except Exception as e:
             raise ToolsError(
                 f"Failed to fetch documents from Google: {e}"
