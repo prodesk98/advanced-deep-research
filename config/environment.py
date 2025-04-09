@@ -48,19 +48,24 @@ if QDRANT_DSN is None:
 
 USE_RERANKER = bool(environ.get("USE_RERANKER", "true") == "true")
 USE_CHAT_MEMORY = bool(environ.get("USE_CHAT_MEMORY", "true") == "true")
+USE_ARXIV = bool(environ.get("USE_ARXIV", "true") == "true")
 
-SEARCH_ENGINE: Literal["local", "serpapi", "brave"] = environ.get("SEARCH_ENGINE", "local") # local, serpapi or brave
-if SEARCH_ENGINE not in ["local", "serpapi", "brave"]:
-    raise ValueError("SEARCH_ENGINE must be 'local', 'serpapi' or 'brave'.")
+SEARCH_ENGINE: Literal["local", "serpapi", "brave", "tavily"] = environ.get("SEARCH_ENGINE", "local") # local, serpapi, tavily or brave
+if SEARCH_ENGINE not in ["local", "serpapi", "brave", "tavily"]:
+    raise ValueError("SEARCH_ENGINE must be 'local', 'serpapi', 'tavily' or 'brave'.")
 
 SERPAPI_API_KEY: Optional[str] = environ.get("SERPAPI_API_KEY")
 BRAVE_API_KEY: Optional[str] = environ.get("BRAVE_API_KEY")
+TAVILY_API_KEY: Optional[str] = environ.get("TAVILY_API_KEY")
 
 if SEARCH_ENGINE == "serpapi" and SERPAPI_API_KEY is None:
     raise ValueError("SERPAPI_API_KEY not found in environment variables.")
 
 if SEARCH_ENGINE == "brave" and BRAVE_API_KEY is None:
     raise ValueError("BRAVE_API_KEY not found in environment variables.")
+
+if SEARCH_ENGINE == "tavily" and TAVILY_API_KEY is None:
+    raise ValueError("TAVILY_API_KEY not found in environment variables.")
 
 CRAWLER_ENGINE: Literal["local", "firecrawl"] = environ.get("CRAWLER_ENGINE", "local") # local, firecrawl
 

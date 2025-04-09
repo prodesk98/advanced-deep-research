@@ -5,6 +5,7 @@ from serpapi import GoogleSearch as SerpapiGoogleSearch
 
 from parsers import CrawlEngine
 from .brave_search import BraveSearch
+from .tavily_search import TavilySearch
 
 from config import (
     LANGUAGE,
@@ -81,6 +82,17 @@ class SearchEngine(BaseSearchService):
                 "ui_lang": "en-US",
             }
             searcher = BraveSearch(**params)
+            results = searcher.search(query, limit)
+            return [
+                SearchResult(
+                    title=result.title,
+                    description=result.snippet,
+                    link=result.link,
+                )
+                for result in results
+            ]
+        elif SEARCH_ENGINE == "tavily":
+            searcher = TavilySearch()
             results = searcher.search(query, limit)
             return [
                 SearchResult(

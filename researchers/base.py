@@ -4,10 +4,10 @@ from typing import Optional
 
 class BaseSearchService(ABC):
     @abstractmethod
-    def search(self, query: str, limit: int = 5):
+    def search(self, query: str, limit: int = 5) -> list:
         raise NotImplementedError("Subclasses should implement this method.")
 
-    def query(self, query: str, limit: int = 5):
+    def query(self, query: str, limit: int = 5) -> list:
         raise NotImplementedError("Subclasses should implement this method.")
 
     def upsert(self, document, document_id: Optional[str] = None):

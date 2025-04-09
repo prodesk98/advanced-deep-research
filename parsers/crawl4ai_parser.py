@@ -33,7 +33,7 @@ class WebBrowserCrawlerParser(BaseParser):
             viewport_width = 1280,
             viewport_height = 720,
             user_agent=f"Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; {PROJECT_NAME}/1.0; "
-                       f"+https://github.com/prodesk98/ResumidorLLM)",
+                       f"+https://github.com/prodesk98/advanced-deep-research)",
         ))
         self._crawler: Optional[AsyncWebCrawler] = None # Lazy initialization
 

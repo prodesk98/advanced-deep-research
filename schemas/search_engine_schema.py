@@ -9,6 +9,12 @@ class BraveSearchResult(BaseModel):
     link: str
 
 
+class TavilySearchResult(BaseModel):
+    title: str
+    snippet: str
+    link: str
+
+
 class SearchResult(BaseModel):
     title: str
     description: str

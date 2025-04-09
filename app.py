@@ -37,7 +37,7 @@ feedback_placeholder = st.empty()
 #
 
 # Initialize the OpenAI LLM client
-llm = OpenAILLM(namespace=chatId, ui=feedback_placeholder)
+llm = OpenAILLM(namespace="deep-searcher", ui=feedback_placeholder)
 #
 
 # Conversation Management

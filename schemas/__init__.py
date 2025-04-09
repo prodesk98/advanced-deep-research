@@ -20,4 +20,8 @@ from .tools_schema import (
     SearchDeepResearcherSchema,
 )
 from .summarize_schema import SummarizeRequest, SummarizeResponse
-from .search_engine_schema import BraveSearchResult, SearchResult
+from .search_engine_schema import (
+    BraveSearchResult,
+    TavilySearchResult,
+    SearchResult
+)

@@ -5,10 +5,10 @@ from researchers import SemanticSearch
 
 
 class ConversationsManager:
-    def __init__(self, namespace: str):
-        self._namespace = namespace
-        self._conversations_factory = ConversationFactory(namespace=self._namespace)
-        self._semantic_search = SemanticSearch(namespace=self._namespace)
+    def __init__(self, chat_id: str):
+        self._chat_id = chat_id
+        self._conversations_factory = ConversationFactory(namespace=self._chat_id)
+        self._semantic_search = SemanticSearch(namespace=self._chat_id)
 
     def get_messages(self, limit: int = 50) -> list[Message]:
         return self._conversations_factory.all(limit)

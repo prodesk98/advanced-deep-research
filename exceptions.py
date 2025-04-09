@@ -45,6 +45,14 @@ class ArxivDownloadError(Exception):
         logger(self.message, level="error")
 
 
+class TavilySearchError(Exception):
+    """Custom exception for Tavily search errors."""
+    def __init__(self, message: str):
+        self.message = message
+        super().__init__(self.message)
+        logger(self.message, level="error")
+
+
 class CrawlerParserError(Exception):
     """Custom exception for site parser errors."""
     def __init__(self, url: str, content: str):

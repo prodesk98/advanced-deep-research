@@ -19,16 +19,16 @@
 
 ## ⚙️ Tech Stack
 
-| Component            | Technology/Model                             |
-|----------------------|----------------------------------------------|
-| LLM (main)           | Qwen 2.5 via vLLM (OpenAI-compatible API)    |
-| Embeddings           | `jinaai/jina-embeddings-v3`                  |
-| Summarization        | `facebook/bart-large-cnn`                    |
-| Re-ranker            | `jinaai/jina-reranker-v2-base-multilingual`  |
-| Vector Storage       | Qdrant                                       |
-| PDF Parsing          | `pymupdf4llm`                                |
-| Web Search           | Brave API, Google (local), SerpAPI           |
-| Backend              | FastAPI + Transformers(Hugging Face)         |
+| Component            | Technology/Model                            |
+|----------------------|---------------------------------------------|
+| LLM (main)           | Qwen 2.5 via vLLM (OpenAI-compatible API)   |
+| Embeddings           | `jinaai/jina-embeddings-v3`                 |
+| Summarization        | `facebook/bart-large-cnn`                   |
+| Re-ranker            | `jinaai/jina-reranker-v2-base-multilingual` |
+| Vector Storage       | Qdrant                                      |
+| PDF Parsing          | `pymupdf4llm`                               |
+| Web Search           | Brave API, Google (local), SerpAPI, Tavily  |
+| Backend              | FastAPI + Transformers(Hugging Face)        |
 
 ---
 
@@ -84,31 +84,17 @@ HF_TOKEN=your_huggingface_token
 
 ### 3. Install dependencies
 
-Using Poetry (recommended):
+Using Poetry:
 
 ```bash
 pip install poetry
 poetry install
 ```
 
-Or using pip:
+### 4. Download models
 
 ```bash
-pip install -r requirements.txt
-```
-
----
-
-## ▶️ Running the Server
-
-```bash
-poetry run fastapi run server/main.py
-```
-
-To run the Streamlit debugging interface:
-
-```bash
-poetry run streamlit run app.py
+poetry run python -m download_cli.py
 ```
 
 ---

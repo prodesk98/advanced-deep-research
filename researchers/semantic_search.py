@@ -1,7 +1,7 @@
 from typing import Optional
 from uuid import uuid4
 
-from langchain_text_splitters import CharacterTextSplitter
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 from databases import Qdrant
 from llm import get_embeddings, get_reranker
@@ -21,8 +21,11 @@ class SemanticSearch(BaseSearchService):
         embeddings: Optional[Embeddings] = None
     ):
         self._namespace = namespace
-        self._splitter = CharacterTextSplitter.from_tiktoken_encoder(
-            encoding_name="cl100k_base", chunk_size=512, chunk_overlap=0
+        self._splitter = RecursiveCharacterTextSplitter(
+            chunk_size=1000,
+            chunk_overlap=100,
+            length_function=len,
+            is_separator_regex=True,
         )
         self._vectorstore = qdrant or Qdrant(self._namespace)
         self._embedding = embeddings or get_embeddings()
