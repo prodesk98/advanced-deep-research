@@ -1,3 +1,4 @@
+from asyncio import to_thread
 from typing import Optional
 
 import googlesearch
@@ -15,23 +16,23 @@ from config import (
 from exceptions import (
     SearchEngineError,
     CrawlerParserError,
-    SummarizationError, BraveSearchError
+    SummarizationError, BraveSearchError, TavilySearchError
 )
 from llm import get_reranker, get_summarization
 from llm.reranker import Reranker
 from llm.summarization import Summarization
 from loggings import logger
 from schemas import SearchResult
-from .base import BaseSearchService
+from .base import BasePerformer, BaseSearchService
 
 
-class SearchEngine(BaseSearchService):
-    def __init__(self, reranker: Optional[Reranker] = None, summarization: Optional[Summarization] = None) -> None:
-        self._reranker = reranker or get_reranker()
-        self._summarization = summarization or get_summarization()
+class SearchEnginePerformer(BasePerformer):
+    def __init__(self, limit: int = 10):
+        self._limit = limit
+        if self._limit == 0:
+            raise ValueError("Limit must be greater than 0.")
 
-    @staticmethod
-    def _perform(query: str, limit: int = 10) -> Optional[list[SearchResult]]:
+    def perform(self, query: str) -> Optional[list["SearchResult"]]:
         if SEARCH_ENGINE == "local":
             advanced_query = " ".join(
                 [
@@ -47,11 +48,11 @@ class SearchEngine(BaseSearchService):
                     "lang:en",
                 ]
             )
-            results = googlesearch.search(advanced_query, num_results=limit, lang=LANGUAGE, advanced=True)
+            results = googlesearch.search(advanced_query, num_results=self._limit, lang=LANGUAGE, advanced=True)
             return [
                 SearchResult(
                     title=result.title,
-                    description=result.description,
+                    snippet=result.description,
                     link=result.url,
                 )
                 for result in results
@@ -70,7 +71,7 @@ class SearchEngine(BaseSearchService):
             return [
                 SearchResult(
                     title=result.get("title"),
-                    description=result.get("snippet"),
+                    snippet=result.get("snippet"),
                     link=result.get("link"),
                 )
                 for result in results
@@ -82,22 +83,22 @@ class SearchEngine(BaseSearchService):
                 "ui_lang": "en-US",
             }
             searcher = BraveSearch(**params)
-            results = searcher.search(query, limit)
+            results = searcher.search(query, self._limit)
             return [
                 SearchResult(
                     title=result.title,
-                    description=result.snippet,
+                    snippet=result.snippet,
                     link=result.link,
                 )
                 for result in results
             ]
         elif SEARCH_ENGINE == "tavily":
             searcher = TavilySearch()
-            results = searcher.search(query, limit)
+            results = searcher.search(query, self._limit)
             return [
                 SearchResult(
                     title=result.title,
-                    description=result.snippet,
+                    snippet=result.snippet,
                     link=result.link,
                 )
                 for result in results
@@ -105,17 +106,26 @@ class SearchEngine(BaseSearchService):
         else:
             raise SearchEngineError("Google Search Engine not configured.")
 
-    def search(self, query: str, limit: int = 10, parser: bool = True) -> str:
+
+class SearchEngine(BaseSearchService):
+    def __init__(
+        self,
+        reranker: Optional[Reranker] = None,
+        summarization: Optional[Summarization] = None,
+    ) -> None:
+        self._reranker = reranker or get_reranker()
+        self._summarization = summarization or get_summarization()
+
+    def search(self, query: str, parser: bool = True) -> str:
         """
         Search for the most relevant documents based on the query using researchers.
         :param parser: Whether to parse the results or not. Get Content from the URL return markdown.
         :param query: The query string to search for.
-        :param limit: The maximum number of results to return.
         :return:
             str: The titles and snippets of the documents found.
         """
         try:
-            results = self._perform(query, limit)
+            results = SearchEnginePerformer().perform(query)
 
             if not results:
                 raise SearchEngineError("Google Search Engine returned no results.")
@@ -126,7 +136,7 @@ class SearchEngine(BaseSearchService):
                 results = [
                     SearchResult(
                         title=result.title,
-                        description=result.description,
+                        snippet=result.snippet,
                         link=result.link,
                     )
                     for result in results
@@ -135,12 +145,8 @@ class SearchEngine(BaseSearchService):
             if parser:
                 for result in results:
                     try:
-                        contents = CrawlEngine.perform(result.link)
-                        summarized = self._summarization.summarize(
-                            query,
-                            contents
-                        )
-                        chunks.append(summarized)
+                        contents = CrawlEngine().perform(result.link)
+                        return self._summarization.summarize(query, contents)
                     except CrawlerParserError as e:
                         logger(
                             f"Failed to parse the content from {e.url}"
@@ -154,18 +160,26 @@ class SearchEngine(BaseSearchService):
                             f"Failed to parse the content from {e}"
                         )
 
-            reranked_results = self._reranker.rerank(query, chunks)
-
-            formatted_results = "\n".join(
-                [
-                    result.document
-                    for result in reranked_results
-                ]
-            )
-            return self._summarization.summarize(query, formatted_results)
+            for result in results:
+                if result.title and result.snippet:
+                    chunks.append(f"Title: {result.title}\nSnippet: {result.snippet}\nLink: {result.link}\n")
+            if not chunks:
+                raise SearchEngineError("Google Search Engine returned no results.")
+            return "\n".join(chunks)
         except SearchEngineError as e:
             raise SearchEngineError(f"Failed to fetch documents from Google: {e.message}")
         except BraveSearchError as e:
             raise SearchEngineError(f"Failed to fetch documents from Brave: {e.message}")
+        except TavilySearchError as e:
+            raise SearchEngineError(f"Failed to fetch documents from Tavily: {e.message}")
         except Exception as e:
             raise SearchEngineError(f"An unexpected error occurred: {str(e)}")
+
+    async def asearch(self, query: str, parser: bool = True) -> list:
+        """
+        Perform an asynchronous search for the most relevant documents based on the query.
+        :param query:
+        :param parser:
+        :return:
+        """
+        return await to_thread(self.search, query, parser)

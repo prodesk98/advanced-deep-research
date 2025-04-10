@@ -1,3 +1,4 @@
+from asyncio import to_thread
 from typing import Optional
 from uuid import uuid4
 
@@ -71,6 +72,15 @@ class SemanticSearch(BaseSearchService):
             raise SemanticSearchError(
                 f"Failed to perform semantic search: {e}"
             )
+
+    async def asearch(self, query: str, limit: int = 5) -> list["SearchResultSchema"]:
+        """
+        Perform an asynchronous search for the most relevant documents based on the query.
+        :param query:
+        :param limit:
+        :return:
+        """
+        return await to_thread(self.search, query, limit)
 
     def upsert(self, document: str, document_id: Optional[str] = None) -> None:
         """

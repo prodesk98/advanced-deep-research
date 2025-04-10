@@ -1,6 +1,6 @@
 from tavily import TavilyClient
 from config import TAVILY_API_KEY
-from schemas import TavilySearchResult
+from schemas import TavilySearchResult, SearchResult
 from .base import BaseSearchService
 from exceptions import TavilySearchError
 
@@ -44,3 +44,5 @@ class TavilySearch(BaseSearchService):
         except Exception as e:
             raise TavilySearchError(f"Failed to fetch results from Tavily API: {e}")
 
+    async def asearch(self, query: str, limit: int = 5) -> list["SearchResult"] | str:
+        pass

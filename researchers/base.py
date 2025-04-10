@@ -1,14 +1,30 @@
 from abc import ABC, abstractmethod
+from schemas import SearchResult
 from typing import Optional
 
 
 class BaseSearchService(ABC):
     @abstractmethod
-    def search(self, query: str, limit: int = 5) -> list:
+    def search(self, query: str, limit: int = 5) -> list["SearchResult"]:
+        raise NotImplementedError("Subclasses should implement this method.")
+
+    @abstractmethod
+    async def asearch(self, query: str, limit: int = 5) -> list["SearchResult"]:
         raise NotImplementedError("Subclasses should implement this method.")
 
     def query(self, query: str, limit: int = 5) -> list:
         raise NotImplementedError("Subclasses should implement this method.")
 
     def upsert(self, document, document_id: Optional[str] = None):
+        raise NotImplementedError("Subclasses should implement this method.")
+
+
+class BasePerformer(ABC):
+    @abstractmethod
+    def perform(self, contents: str) -> str:
+        """
+        Perform a search using the search engine.
+        :param contents:
+        :return:
+        """
         raise NotImplementedError("Subclasses should implement this method.")

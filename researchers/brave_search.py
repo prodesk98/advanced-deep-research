@@ -1,3 +1,4 @@
+from asyncio import to_thread
 from typing import Optional
 
 import requests
@@ -18,7 +19,7 @@ class BraveSearch(BaseSearchService):
         if not BRAVE_API_KEY:
             raise ValueError("BRAVE_API_KEY not found in environment variables.")
 
-    def search(self, query: str, limit: int = 10) -> Optional[list[BraveSearchResult]]:
+    def search(self, query: str, limit: int = 10) -> Optional[list["BraveSearchResult"]]:
         """
         Perform a search using the Brave Search API.
         :param limit:
@@ -61,3 +62,12 @@ class BraveSearch(BaseSearchService):
             raise BraveSearchError(
                 f"An unexpected error occurred: {e}"
             )
+
+    async def asearch(self, query: str, limit: int = 5) -> Optional[list["BraveSearchResult"]]:
+        """
+        Perform an asynchronous search using the Brave Search API.
+        :param query:
+        :param limit:
+        :return:
+        """
+        return to_thread(self.search, query, limit)

@@ -106,7 +106,7 @@ class Tools:
 
         try:
             # Convert the content to markdown
-            result = CrawlEngine.perform(url)
+            result = CrawlEngine().perform(url)
             if not result:
                 raise ToolsError("No content found for the provided URL.")
             logger(
