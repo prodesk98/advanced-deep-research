@@ -1,3 +1,5 @@
+from asyncio import to_thread
+
 from tavily import TavilyClient
 from config import TAVILY_API_KEY
 from schemas import TavilySearchResult, SearchResult
@@ -21,7 +23,7 @@ class TavilySearch(BaseSearchService):
         Perform a search using the Tavily API.
         :param query:
         :param limit:
-        :return:
+        :return: list[TavilySearchResult]
         """
         try:
             results = self._client.search(
@@ -44,5 +46,11 @@ class TavilySearch(BaseSearchService):
         except Exception as e:
             raise TavilySearchError(f"Failed to fetch results from Tavily API: {e}")
 
-    async def asearch(self, query: str, limit: int = 5) -> list["SearchResult"] | str:
-        pass
+    async def asearch(self, query: str, limit: int = 5) -> list[TavilySearchResult]:
+        """
+        Perform an asynchronous search using the Tavily API.
+        :param query:
+        :param limit:
+        :return: list[TavilySearchResult]
+        """
+        return await to_thread(self.search, query, limit)

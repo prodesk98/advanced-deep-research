@@ -6,7 +6,7 @@ from .generative_schema import (
 )
 from .vectordb_schema import (
     UpsertSchema, MetadataSchema,
-    QueryResultSchema, SearchResultSchema
+    QueryResultSchema, SearchSemanticResult
 )
 from .conversations_schema import Message
 from .reranker_schema import RerankRequest, RerankResponse, RerankedDocument
@@ -23,5 +23,7 @@ from .summarize_schema import SummarizeRequest, SummarizeResponse
 from .search_engine_schema import (
     BraveSearchResult,
     TavilySearchResult,
-    SearchResult
+    SearchResult,
+    YoutubeSearchResult,
+    ArXivSearchResult,
 )

@@ -4,6 +4,7 @@ from typing import Optional
 import googlesearch
 from serpapi import GoogleSearch as SerpapiGoogleSearch
 
+from helpers import parser_search_result
 from parsers import CrawlEngine
 from .brave_search import BraveSearch
 from .tavily_search import TavilySearch
@@ -32,7 +33,7 @@ class SearchEnginePerformer(BasePerformer):
         if self._limit == 0:
             raise ValueError("Limit must be greater than 0.")
 
-    def perform(self, query: str) -> Optional[list["SearchResult"]]:
+    def perform(self, query: str) -> list[SearchResult]:
         if SEARCH_ENGINE == "local":
             advanced_query = " ".join(
                 [
@@ -48,12 +49,17 @@ class SearchEnginePerformer(BasePerformer):
                     "lang:en",
                 ]
             )
-            results = googlesearch.search(advanced_query, num_results=self._limit, lang=LANGUAGE, advanced=True)
+            results = googlesearch.search(
+                advanced_query,
+                num_results=self._limit,
+                lang=LANGUAGE,
+                advanced=True
+            )
             return [
-                SearchResult(
+                parser_search_result(
                     title=result.title,
-                    snippet=result.description,
-                    link=result.url,
+                    description=result.description,
+                    link=result.link,
                 )
                 for result in results
             ]
@@ -69,9 +75,9 @@ class SearchEnginePerformer(BasePerformer):
             data = searcher.get_dict()
             results = data.get("organic_results", [])
             return [
-                SearchResult(
+                parser_search_result(
                     title=result.get("title"),
-                    snippet=result.get("snippet"),
+                    description=result.get("snippet"),
                     link=result.get("link"),
                 )
                 for result in results
@@ -83,26 +89,10 @@ class SearchEnginePerformer(BasePerformer):
                 "ui_lang": "en-US",
             }
             searcher = BraveSearch(**params)
-            results = searcher.search(query, self._limit)
-            return [
-                SearchResult(
-                    title=result.title,
-                    snippet=result.snippet,
-                    link=result.link,
-                )
-                for result in results
-            ]
+            return searcher.search(query, self._limit)
         elif SEARCH_ENGINE == "tavily":
             searcher = TavilySearch()
-            results = searcher.search(query, self._limit)
-            return [
-                SearchResult(
-                    title=result.title,
-                    snippet=result.snippet,
-                    link=result.link,
-                )
-                for result in results
-            ]
+            return searcher.search(query, self._limit)
         else:
             raise SearchEngineError("Google Search Engine not configured.")
 

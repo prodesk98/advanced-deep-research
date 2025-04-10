@@ -8,7 +8,7 @@ from databases import Qdrant
 from llm import get_embeddings, get_reranker
 from llm.embeddings import Embeddings
 from llm.reranker import Reranker
-from schemas import MetadataSchema, UpsertSchema, SearchResultSchema
+from schemas import MetadataSchema, UpsertSchema, SearchSemanticResult
 from .base import BaseSearchService
 from exceptions import SemanticSearchError, SemanticUpsertError, InvalidRerankValue, RerankError
 
@@ -32,12 +32,12 @@ class SemanticSearch(BaseSearchService):
         self._embedding = embeddings or get_embeddings()
         self._reranker = reranker or get_reranker()
 
-    def search(self, query: str, limit: int = 10) -> list["SearchResultSchema"]:
+    def search(self, query: str, limit: int = 10) -> list[SearchSemanticResult]:
         """
         Search for the most relevant documents based on the query.
         :param query: The query string to search for.
         :param limit: The maximum number of results to return.
-        :return: A list of "SearchResultSchema" containing the search results.
+        :return: list[SearchSemanticResult]
         """
         try:
             results = self.query(query, limit)
@@ -51,7 +51,7 @@ class SemanticSearch(BaseSearchService):
             # Rerank the results using the reranker
             reranked_results = self._reranker.rerank(query, [result.text for result in results])
             return [
-                SearchResultSchema(
+                SearchSemanticResult(
                     score=ranked.score or 0,
                     text=ranked.document,
                 )
@@ -73,12 +73,12 @@ class SemanticSearch(BaseSearchService):
                 f"Failed to perform semantic search: {e}"
             )
 
-    async def asearch(self, query: str, limit: int = 5) -> list["SearchResultSchema"]:
+    async def asearch(self, query: str, limit: int = 5) -> list[SearchSemanticResult]:
         """
         Perform an asynchronous search for the most relevant documents based on the query.
         :param query:
         :param limit:
-        :return:
+        :return: list[SearchSemanticResult]
         """
         return await to_thread(self.search, query, limit)
 
@@ -114,18 +114,18 @@ class SemanticSearch(BaseSearchService):
                 f"Failed to upsert document into vector database: {e}"
             )
 
-    def query(self, query: str, limit: int = 10) -> list["SearchResultSchema"]:
+    def query(self, query: str, limit: int = 10) -> list[SearchSemanticResult]:
         """
         Query the vector database for the most relevant documents.
         :param query: The query string to search for.
         :param limit: The maximum number of results to return.
-        :return: A list of "SearchResultSchema" containing the search results.
+        :return: A list of "SearchSemanticResult" containing the search results.
         """
         try:
             vectors = self._embedding.embed([query])
             results = self._vectorstore.query(vectors[0], limit=limit)
             return [
-                SearchResultSchema(
+                SearchSemanticResult(
                     score=result.score,
                     text=result.metadata.text,
                 )

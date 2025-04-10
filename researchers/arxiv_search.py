@@ -9,7 +9,7 @@ from exceptions import ArxivSearchError, ArxivDownloadError
 from llm.summarization import Summarization
 from loggings import logger
 from parsers import PDFParser
-from schemas import SearchResult
+from schemas import SearchResult, ArXivSearchResult
 from .base import BaseSearchService
 
 import arxiv
@@ -49,7 +49,7 @@ class ArxivSearch(BaseSearchService):
         self._client = arxiv.Client()
         self._summarization = summarization or get_summarization()
 
-    def search(self, query: str, limit: int = 3, parser: bool = True) -> list[SearchResult]:
+    def search(self, query: str, limit: int = 3, parser: bool = True) -> list[ArXivSearchResult]:
         """
         Search for papers on arXiv based on a query.
         :param parser:
@@ -70,13 +70,12 @@ class ArxivSearch(BaseSearchService):
 
             # Get the results
             results = [
-                SearchResult(
+                ArXivSearchResult(
                     title=result.title,
                     snippet=result.summary,
                     link=result.pdf_url,
                 ) for result in self._client.results(searcher)
             ]
-            chunks: list[str] = []
 
             if parser:
                 pdf_parser = PDFParser()
@@ -86,13 +85,7 @@ class ArxivSearch(BaseSearchService):
                         if not pdf_content:
                             raise ArxivDownloadError("PDF content is empty.")
                         if pdf_content:
-                            # Parse the PDF content
-                            chunks.append(
-                                self._summarization.summarize(
-                                    query,
-                                    pdf_parser.parse(values=pdf_content)
-                                )
-                            )
+                            result.content = pdf_parser.parse(values=pdf_content)
                     except ValueError as e:
                         logger(
                             f"Failed to parse the content from {result.entry_id}: {e}"
@@ -106,7 +99,7 @@ class ArxivSearch(BaseSearchService):
         except Exception as e:
             raise ArxivSearchError(f"Failed to fetch papers from arXiv: {e}")
 
-    async def asearch(self, query: str, limit: int = 3, parser: bool = True) -> str:
+    async def asearch(self, query: str, limit: int = 3, parser: bool = True) -> list[ArXivSearchResult]:
         """
         Asynchronous search for papers on arXiv based on a query.
         :param parser:

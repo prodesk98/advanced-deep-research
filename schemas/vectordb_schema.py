@@ -49,6 +49,6 @@ class QueryResultSchema(BaseModel):
     )
 
 
-class SearchResultSchema(BaseModel):
+class SearchSemanticResult(BaseModel):
     score: float
     text: str
