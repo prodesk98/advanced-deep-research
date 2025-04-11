@@ -1,5 +1,3 @@
-import pytest
-
 
 def test_pdf_parser():
     from parsers.pdf_parser import PDFParser

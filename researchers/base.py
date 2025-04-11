@@ -17,14 +17,3 @@ class BaseSearchService(ABC):
 
     def upsert(self, document, document_id: Optional[str] = None) -> None:
         raise NotImplementedError("Subclasses should implement this method.")
-
-
-class BasePerformer(ABC):
-    @abstractmethod
-    def perform(self, contents: str) -> str:
-        """
-        Perform a search using the search engine.
-        :param contents:
-        :return:
-        """
-        raise NotImplementedError("Subclasses should implement this method.")

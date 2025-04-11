@@ -14,8 +14,10 @@ OPENAI_API_KEY = environ.get("OPENAI_API_KEY", "default")
 if not OPENAI_API_KEY:
     raise ValueError("OPENAI_API_KEY not found in environment variables.")
 
+# Backend configuration
 LOCALLY_API_BASE = environ.get("LOCALLY_API_BASE", "http://localhost:8502")
 LOCALLY_API_KEY = environ.get("LOCALLY_API_KEY", "default")
+##
 
 # Set the OpenAI API base URL
 OPENAI_API_BASE = environ.get("OPENAI_API_BASE", "https://api.openai.com/v1")
@@ -31,6 +33,17 @@ OPENAI_TEMPERATURE = float(environ.get("OPENAI_TEMPERATURE", .0))
 
 # Set the OpenAI max tokens for response length
 OPENAI_MAX_TOKENS = int(environ.get("OPENAI_MAX_TOKENS", 1000))
+
+LLM_ENGINE: Literal['openai', 'ollama'] = environ.get("LLM_ENGINE", 'openai') # openai or ollama
+
+if LLM_ENGINE not in ["openai", "ollama"]:
+    raise ValueError("LLM_ENGINE must be 'openai' or 'ollama'.")
+
+## Ollama configuration
+OLLAMA_API_BASE = environ.get("OLLAMA_API_BASE", "http://localhost:11434")
+OLLAMA_MODEL = environ.get("OLLAMA_MODEL", "llama3.2") # Set the Ollama model to be used
+OLLAMA_MAX_TOKENS = int(environ.get("OPENAI_MAX_TOKENS", 1000))
+# Set the Ollama model to be used
 
 # MongoDB configuration
 MONGODB_URI: Optional[MongoDsn] = environ.get("MONGODB_URI")

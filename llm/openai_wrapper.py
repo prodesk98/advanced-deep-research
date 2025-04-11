@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List, Optional, TypeVar
+from typing import Optional, TypeVar
 
 from langchain.agents import AgentExecutor, create_tool_calling_agent
 from langchain_core.messages import HumanMessage, SystemMessage, BaseMessage
@@ -9,16 +9,10 @@ from langchain_core.prompts import (
     PromptTemplate,
     MessagesPlaceholder,
 )
-from langchain_openai import ChatOpenAI
 from pydantic import BaseModel
 from streamlit.delta_generator import DeltaGenerator
 
-from config import (
-    OPENAI_API_KEY,
-    OPENAI_MODEL,
-    OPENAI_MAX_TOKENS,
-    OPENAI_TEMPERATURE, OPENAI_API_BASE, NATURAL_LANGUAGE,
-)
+from config import NATURAL_LANGUAGE
 from loggings import logger
 from prompt_engineering import (
     AGENT_PROMPT,
@@ -39,12 +33,19 @@ from exceptions import (
     YoutubeParserError, GenerativeError
 )
 from .base import BaseLLM
-from .tools import Tools
 from .callbacks import AgentCallbackHandler
 from tenacity import (
     retry,
     stop_after_attempt,
     wait_random_exponential,
+)
+from langchain_openai import ChatOpenAI
+from config import (
+    OPENAI_API_BASE,
+    OPENAI_API_KEY,
+    OPENAI_MODEL,
+    OPENAI_TEMPERATURE,
+    OPENAI_MAX_TOKENS,
 )
 
 
@@ -55,15 +56,8 @@ class OpenAILLM(BaseLLM):
     """
     OpenAI wrapper for the OpenAI API.
     """
-
     def __init__(self, namespace: Optional[str] = None, ui: Optional[DeltaGenerator] = None):
-        self._namespace = namespace or "default"
-        self._ui = ui
-        self._tools = Tools(
-            namespace=self._namespace,
-            ui=self._ui,
-            llm=self
-        )
+        super().__init__(namespace, ui)
         self._chat_llm = ChatOpenAI(
             base_url=OPENAI_API_BASE,
             api_key=OPENAI_API_KEY,
@@ -170,12 +164,13 @@ class OpenAILLM(BaseLLM):
             ) from e
 
     @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
-    def flashcard(self, prompt: str, quantities: int = 5) -> List[FlashCardSchema]:
+    def flashcard(self, prompt: str, quantities: int = 5) -> list[FlashCardSchema]:
         """
         Generate flashcards based on the provided prompt.
         :param prompt:
         :param quantities:
         :return:
+            list[FlashCardSchema]: List of generated flashcards.
         """
         logger(
             f"Generating {quantities} flashcards for prompt: {prompt}",

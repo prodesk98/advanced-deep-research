@@ -1,16 +1,16 @@
 from config import CRAWLER_ENGINE
 from exceptions import CrawlerParserError
-from researchers.base import BasePerformer
+from bases import BaseEngine
 from .firecrawl_parser import FirecrawlParser
 from .crawl4ai_parser import WebBrowserCrawlerParser
 
 
-class CrawlEngine(BasePerformer):
+class CrawlEngine(BaseEngine):
     """
     CrawlEngine is a performer for web crawling tasks.
     """
 
-    def perform(self, contents: str) -> str:
+    def perform(self, contents: str, **kwargs) -> str:
         """
         Perform a web crawling task using the specified crawler engine.
         :param contents:

@@ -6,7 +6,7 @@
 
 ## 🚀 Features
 
-- 🔍 Sub-question generation using a local LLM (Qwen 2.5)
+- 🔍 Sub-question generation using a local LLM (Qwen 2.5) or Ollama API
 - 🌐 Web search via Brave Search, Google, or SerpAPI
 - 📄 Advanced content extraction from HTML and PDFs (with `pymupdf4llm`)
 - ✍️ Chunked summarization using `facebook/bart-large-cnn` (fine-tuned)
@@ -91,18 +91,26 @@ pip install poetry
 poetry install
 ```
 
-### 4. Download models
+### 4. Run
+
+Using Ollama:
 
 ```bash
-poetry run python -m download_cli.py
+ollama run qwen-2.5
+```
+
+Using Docker compose:
+
+```bash
+docker compose up -d
 ```
 
 ---
 
-## 🐳 Docker Deployment
+### Run Frontend
 
 ```bash
-docker compose up -d
+poetry run streamlit run app.py
 ```
 
 App runs at: `http://localhost:8501`

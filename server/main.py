@@ -24,7 +24,7 @@ app = FastAPI(
 @app.post("/embeddings", response_model=EmbeddingsResponse)
 async def embeddings(
     payload: EmbeddingsRequest,
-) -> "EmbeddingsResponse":
+) -> EmbeddingsResponse:
     """
     Generate embeddings for the provided texts.
     :param payload:
@@ -45,7 +45,7 @@ async def embeddings(
 @app.post("/rerank", response_model=RerankResponse)
 async def rerank(
     payload: RerankRequest,
-) -> "RerankResponse":
+) -> RerankResponse:
     """
     Rerank the provided documents based on the query.
     :param payload:
@@ -72,7 +72,7 @@ async def rerank(
 @app.post("/summarize", response_model=SummarizeResponse)
 async def summarize(
     payload: SummarizeRequest
-) -> "SummarizeResponse":
+) -> SummarizeResponse:
     """
     Summarize the provided document based on the query.
     Contents English recommended

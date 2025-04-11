@@ -26,16 +26,17 @@ from llm.reranker import Reranker
 from llm.summarization import Summarization
 from loggings import logger
 from schemas import SearchResult
-from .base import BasePerformer, BaseSearchService
+from .base import BaseSearchService
+from bases import BaseEngine
 
 
-class SearchEnginePerformer(BasePerformer):
+class SearchEnginePerformer(BaseEngine):
     def __init__(self, limit: int = 10):
         self._limit = limit
         if self._limit == 0:
             raise ValueError("Limit must be greater than 0.")
 
-    def perform(self, query: str) -> list[SearchResult]:
+    def perform(self, query: str, **kwargs) -> list[SearchResult]:
         if SEARCH_ENGINE == "local":
             advanced_query = " ".join(
                 [
@@ -71,7 +72,8 @@ class SearchEnginePerformer(BasePerformer):
                 "hl": "en",
                 "gl": "us",
                 "google_domain": "google.com",
-                "api_key": SERPAPI_API_KEY
+                "api_key": SERPAPI_API_KEY,
+                "num": self._limit,
             }
             searcher = SerpapiGoogleSearch(params)
             data = searcher.get_dict()
@@ -104,9 +106,11 @@ class SearchEngine(BaseSearchService):
         self,
         reranker: Optional[Reranker] = None,
         summarization: Optional[Summarization] = None,
+        num_results: int = 10,
     ) -> None:
         self._reranker = reranker or get_reranker()
         self._summarization = summarization or get_summarization()
+        self._num_results = num_results
 
     def search(self, query: str, parser: bool = True) -> str:
         """
@@ -117,7 +121,7 @@ class SearchEngine(BaseSearchService):
             str: The titles and snippets of the documents found.
         """
         try:
-            results = SearchEnginePerformer().perform(query)
+            results = SearchEnginePerformer(self._num_results).perform(query)
 
             if not results:
                 raise SearchEngineError("Google Search Engine returned no results.")

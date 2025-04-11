@@ -21,10 +21,10 @@ def test_brave_search():
 
 def test_search_engine():
     from researchers import SearchEngine
-    search_engine = SearchEngine()
-    query = "Reinforcement Learning"
     limit = 5
-    result = search_engine.search(query, limit)
+    search_engine = SearchEngine(num_results=limit)
+    query = "Reinforcement Learning"
+    result = search_engine.search(query)
     assert isinstance(result, str), "Expected result to be a string"
     assert len(result) > 0, "Expected result to have length greater than 0"
 

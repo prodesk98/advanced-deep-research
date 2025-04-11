@@ -1,9 +1,11 @@
 from abc import ABC, abstractmethod
-from typing import TypeVar
+from typing import TypeVar, Optional
 
 from langchain_core.messages import BaseMessage
+from streamlit.delta_generator import DeltaGenerator
 
 from schemas import RerankResponse, ReflectionResultSchema
+from .tools import Tools
 
 T = TypeVar("T", bound=BaseMessage)
 
@@ -12,6 +14,20 @@ class BaseLLM(ABC):
     """
     Base class for all LLMs.
     """
+    def __init__(self, namespace: Optional[str] = None, ui: Optional[DeltaGenerator] = None):
+        """
+        Initialize the LLM with optional namespace and UI.
+        :param namespace:
+        :param ui:
+        """
+        self._namespace = namespace or "default"
+        self._ui = ui
+        self._tools = Tools(
+            namespace=self._namespace,
+            ui=self._ui,
+            llm=self
+        )
+
 
     @abstractmethod
     def generate(self, chat_history: list[BaseMessage]) -> str:
