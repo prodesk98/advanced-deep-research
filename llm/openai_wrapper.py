@@ -1,10 +1,7 @@
 from datetime import datetime
-from typing import List, Any, Optional, TypeVar
-from uuid import UUID
+from typing import List, Optional, TypeVar
 
 from langchain.agents import AgentExecutor, create_tool_calling_agent
-from langchain_core.agents import AgentAction, AgentFinish
-from langchain_core.callbacks import BaseCallbackHandler
 from langchain_core.messages import HumanMessage, SystemMessage, BaseMessage
 from langchain_core.prompts import (
     ChatPromptTemplate,
@@ -43,7 +40,7 @@ from exceptions import (
 )
 from .base import BaseLLM
 from .tools import Tools
-
+from .callbacks import AgentCallbackHandler
 from tenacity import (
     retry,
     stop_after_attempt,
@@ -54,37 +51,9 @@ from tenacity import (
 T = TypeVar("T", bound=BaseModel)
 
 
-class AgentCallbackHandler(BaseCallbackHandler):
-    def __init__(self, ui: Optional[DeltaGenerator] = None):
-        self._ui = ui
-        self.actions: dict[str, str] = {}
-
-    def on_agent_action(
-        self,
-        action: AgentAction,
-        *,
-        run_id: UUID,
-        parent_run_id: Optional[UUID] = None,
-        **kwargs: Any,
-    ) -> Any:
-        self.actions[run_id.hex] = action.tool
-        logger(message=f"⚙️ Agent action: {action.tool} with input: {action.tool_input}", level="info", ui=self._ui)
-
-
-    def on_agent_finish(
-        self,
-        finish: AgentFinish,
-        *,
-        run_id: UUID,
-        parent_run_id: Optional[UUID] = None,
-        **kwargs: Any,
-    ) -> Any:
-        logger(message=f"✅ Agent Finished", level="info", ui=self._ui)
-
-
 class OpenAILLM(BaseLLM):
     """
-    OpenAI LLM wrapper for the OpenAI API.
+    OpenAI wrapper for the OpenAI API.
     """
 
     def __init__(self, namespace: Optional[str] = None, ui: Optional[DeltaGenerator] = None):

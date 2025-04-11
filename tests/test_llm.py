@@ -47,7 +47,7 @@ def test_summarization():
 
 
 def test_generative():
-    from llm.openai_llm import OpenAILLM
+    from llm.openai_wrapper import OpenAILLM
 
     llm = OpenAILLM()
 
@@ -61,7 +61,7 @@ def test_generative():
 
 
 def test_flashcard():
-    from llm.openai_llm import OpenAILLM
+    from llm.openai_wrapper import OpenAILLM
 
     llm = OpenAILLM()
 
@@ -81,7 +81,7 @@ def test_flashcard():
 
 
 def test_sub_queries():
-    from llm.openai_llm import OpenAILLM
+    from llm.openai_wrapper import OpenAILLM
 
     llm = OpenAILLM()
 
@@ -93,7 +93,7 @@ def test_sub_queries():
 
 
 def test_reflection():
-    from llm.openai_llm import OpenAILLM
+    from llm.openai_wrapper import OpenAILLM
 
     llm = OpenAILLM()
 
@@ -115,7 +115,7 @@ def test_reflection():
 
 
 def test_summarize():
-    from llm.openai_llm import OpenAILLM
+    from llm.openai_wrapper import OpenAILLM
 
     llm = OpenAILLM()
 

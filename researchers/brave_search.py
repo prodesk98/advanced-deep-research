@@ -47,9 +47,9 @@ class BraveSearch(BaseSearchService):
 
             return [
                 BraveSearchResult(
-                    title=result["title"],
-                    snippet=md(result["description"]),
-                    link=result["url"],
+                    title=result.get("title"),
+                    snippet=md(result.get("description")),
+                    link=result.get("url"),
                 ) for result in results
             ]
 

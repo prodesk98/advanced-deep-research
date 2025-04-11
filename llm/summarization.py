@@ -1,5 +1,4 @@
-import tiktoken
-from langchain_text_splitters import CharacterTextSplitter
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 from exceptions import SummarizationError, APIRequestError
 from loggings import logger
@@ -11,23 +10,15 @@ from ._locally_call_api import LocallyCallAPI
 class Summarization(BaseSummarization):
     def __init__(self):
         self._client = LocallyCallAPI()
-        self._tokenizer = tiktoken.get_encoding("cl100k_base")
-        self._splitter = CharacterTextSplitter.from_tiktoken_encoder(
-            encoding_name="cl100k_base",
+        self._splitter = RecursiveCharacterTextSplitter(
             chunk_size=1024,
-            chunk_overlap=0,
+            chunk_overlap=100,
+            length_function=len,
+            is_separator_regex=True,
         )
 
     def _split_text(self, document: str) -> list[str]:
         return self._splitter.split_text(document)
-
-    def _calc_tokens(self, document: str) -> int:
-        """
-        Calculate the number of tokens in the provided text.
-        :param document:
-        :return:
-        """
-        return len(self._tokenizer.encode(document))
 
     def _perform(self, query: str, doc: str) -> str:
         """
@@ -35,6 +26,7 @@ class Summarization(BaseSummarization):
         :param query:
         :param doc:
         :return:
+            - str: The generated summary.
         """
         return self._client.request(
             "summarize",
@@ -50,6 +42,7 @@ class Summarization(BaseSummarization):
         :param query:
         :param document:
         :return:
+            - str: The generated summary.
         """
         if not isinstance(query, str):
             raise SummarizationError("Query must be a string.")

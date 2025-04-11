@@ -9,7 +9,7 @@ from exceptions import ArxivSearchError, ArxivDownloadError
 from llm.summarization import Summarization
 from loggings import logger
 from parsers import PDFParser
-from schemas import SearchResult, ArXivSearchResult
+from schemas import ArXivSearchResult
 from .base import BaseSearchService
 
 import arxiv

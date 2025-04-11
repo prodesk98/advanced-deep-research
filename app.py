@@ -3,7 +3,7 @@ import uuid
 import streamlit as st
 from langchain_core.messages import HumanMessage, AIMessage
 
-from llm.openai_llm import OpenAILLM
+from llm.openai_wrapper import OpenAILLM
 from management import ConversationsManager
 from schemas import Message
 from parsers import PDFParser

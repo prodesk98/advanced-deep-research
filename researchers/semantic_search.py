@@ -10,7 +10,12 @@ from llm.embeddings import Embeddings
 from llm.reranker import Reranker
 from schemas import MetadataSchema, UpsertSchema, SearchSemanticResult
 from .base import BaseSearchService
-from exceptions import SemanticSearchError, SemanticUpsertError, InvalidRerankValue, RerankError
+from exceptions import (
+    SemanticSearchError,
+    SemanticUpsertError,
+    InvalidRerankValue,
+    RerankError
+)
 
 
 class SemanticSearch(BaseSearchService):

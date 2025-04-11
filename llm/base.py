@@ -17,6 +17,9 @@ class BaseLLM(ABC):
     def generate(self, chat_history: list[BaseMessage]) -> str:
         """
         Generate text based on the provided prompt.
+        :param chat_history:
+        :return:
+            - str: The generated text.
         """
         raise NotImplementedError(
             "Subclasses must implement the 'generate' method to produce text based on the provided prompt."
@@ -30,6 +33,7 @@ class BaseLLM(ABC):
         :param prompt:
         :param quantities:
         :return:
+            - list[FlashCardSchema]: The generated flashcards.
         """
         raise NotImplementedError(
             "Subclasses must implement the 'flashcard' method to produce flashcards based on the provided prompt."
@@ -42,6 +46,7 @@ class BaseLLM(ABC):
         Generate sub-queries based on the provided query.
         :param query:
         :return:
+            - list[str]: The generated sub-queries.
         """
         raise NotImplementedError(
             "Subclasses must implement the 'generate_sub_queries' method to produce sub-queries based on the provided query."
@@ -56,6 +61,7 @@ class BaseLLM(ABC):
         :param sub_queries:
         :param chunks:
         :return:
+            - ReflectionResultSchema: The generated reflection.
         """
         raise NotImplementedError(
             "Subclasses must implement the 'reflection' method to produce a reflection based on the provided query, sub-queries, and chunks."
@@ -66,6 +72,7 @@ class BaseLLM(ABC):
         """
         Generate a summary based on the provided text.
         :return:
+            - str: The generated summary.
         """
         raise NotImplementedError(
             "Subclasses must implement the 'summarize' method to produce a summary based on the provided text."
@@ -81,6 +88,9 @@ class BaseEmbedding(ABC):
     def embed(self, texts: list[str]) -> list[list[float]]:
         """
         Generate embeddings based on the provided text.
+        :param texts:
+        :return:
+            - list[list[float]]: The generated embeddings.
         """
         raise NotImplementedError(
             "Subclasses must implement the 'embed' method to produce embeddings based on the provided text."
@@ -96,6 +106,10 @@ class BaseReranker(ABC):
     def rerank(self, query: str, documents: list[str]) -> list[RerankResponse]:
         """
         Rerank the provided documents based on the query.
+        :param query:
+        :param documents:
+        :return:
+            - list[RerankResponse]: The reranked documents.
         """
         raise NotImplementedError(
             "Subclasses must implement the 'rerank' method to reorder documents based on the provided query."
@@ -111,6 +125,10 @@ class BaseSummarization(ABC):
     def summarize(self, query: str, document: str) -> str:
         """
         Summarize the provided document based on the query.
+        :param query:
+        :param document:
+        :return:
+            - str: The generated summary.
         """
         raise NotImplementedError(
             "Subclasses must implement the 'summarize' method to produce a summary based on the provided documents."

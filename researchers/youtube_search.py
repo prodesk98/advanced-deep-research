@@ -6,7 +6,7 @@ from llm import get_summarization
 from llm.summarization import Summarization
 from loggings import logger
 from parsers import YoutubeParser
-from schemas import SearchResult, YoutubeSearchResult
+from schemas import YoutubeSearchResult
 from .base import BaseSearchService
 from youtube_search import YoutubeSearch as YoutubeSearchAPI
 

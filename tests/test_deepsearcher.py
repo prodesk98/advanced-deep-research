@@ -1,7 +1,7 @@
 
 def test_deepsearcher():
     from deep_searcher import AgentDeepSearch
-    from llm.openai_llm import OpenAILLM
+    from llm.openai_wrapper import OpenAILLM
 
     agent = AgentDeepSearch(OpenAILLM())
 
